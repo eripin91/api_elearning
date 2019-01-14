@@ -1,0 +1,72 @@
+{
+  "name": "Courses",
+  "version": "1.0.0",
+  "description": "Courses E-Learning",
+  "main": "app.js",
+  "scripts": {
+    "test": "npm run standard && NODE_PATH=./config:./app/controllers NODE_ENV=testing ./node_modules/.bin/mocha --exit --reporter spec --timeout 10000 test/*.js",
+    "start": "nodemon app.js",
+    "start-production": "pm2 start app.js -i 0 --name 'courses' --node-args='--max-old-space-size=2048' --max-memory-restart 1500M --log-date-format 'YYYY-MM-DD HH:mm Z' --no-pmx",
+    "standard": "./node_modules/.bin/standard",
+    "deploy-production": "npm test && pm2 deploy ecosystem.json production",
+    "deploy-staging": "npm test && pm2 deploy ecosystem.json staging"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/gratcy/courses.git"
+  },
+  "author": "Dev Team",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gratcy/courses/issues"
+  },
+  "homepage": "https://github.com/gratcy/courses#readme",
+  "pre-commit": [
+    "standard",
+    "test"
+  ],
+  "standard": {
+    "globals": [
+      "express",
+      "CONFIG",
+      "_",
+      "env",
+      "MiscHelper"
+    ],
+    "ignore": [
+      "/test/*.js",
+      "/test/*/*.js"
+    ]
+  },
+  "dependencies": {
+    "assert": "^1.4.1",
+    "async": "^2.6.1",
+    "body-parser": "^1.18.3",
+    "chai": "^4.2.0",
+    "compression": "^1.7.3",
+    "dotenv": "^6.2.0",
+    "errorhandler": "^1.5.0",
+    "express": "^4.16.4",
+    "express-module-loader": "^1.0.0",
+    "express-myconnection": "^1.0.4",
+    "express-validator": "^5.3.0",
+    "fast-json-parse": "^1.0.3",
+    "fast-safe-stringify": "^2.0.6",
+    "lodash": "^4.17.11",
+    "mocha": "^5.2.0",
+    "morgan": "^1.9.1",
+    "mysql": "^2.16.0",
+    "nocache": "^2.0.0",
+    "pre-commit": "^1.2.2",
+    "redis-pool-connection": "^1.4.0",
+    "response-time": "^2.3.2",
+    "should": "^13.2.3",
+    "standard": "^12.0.1",
+    "supertest": "^3.3.0",
+    "uuid": "^3.3.2",
+    "x-xss-protection": "^1.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.9"
+  }
+}

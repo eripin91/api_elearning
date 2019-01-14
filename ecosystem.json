@@ -1,0 +1,38 @@
+{
+  "apps" : [{
+    "name"      : "courses",
+    "script"    : "app.js",
+    "env": {
+      "COMMON_VARIABLE": "true"
+    },
+    "env_production" : {
+      "NODE_ENV": "production"
+    }
+  }],
+  "deploy" : {
+    "staging" : {
+      "user" : "palma",
+      "host" : "127.0.0.1",
+      "ref"  : "origin/staging",
+      "repo" : "git@github.com:gratcy/courses.git",
+      "path" : "/home/palma/www/courses",
+      "pre-deploy-local" : "git checkout . && echo 'Please wait... Deploying in process...'",
+      "post-deploy" : "npm install && NODE_ENV=production pm2 reload courses && pm2 ls && echo 'Please wait... Checking up the app starting up....' && sleep 7s && pm2 ls",
+      "env"  : {
+        "NODE_ENV": "production"
+      }
+    },
+    "production" : {
+      "user" : "palma",
+      "host" : "127.0.0.1",
+      "ref"  : "origin/prod",
+      "repo" : "git@github.com:gratcy/courses.git",
+      "path" : "/home/palma/www/courses",
+      "pre-deploy-local" : "git checkout . && echo 'Please wait... Deploying in process...'",
+      "post-deploy" : "npm install && NODE_ENV=production pm2 reload courses && pm2 ls && echo 'Please wait... Checking up the app starting up....' && sleep 7s && pm2 ls",
+      "env"  : {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}
