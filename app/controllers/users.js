@@ -6,14 +6,14 @@ const usersModel = require('../models/users')
 const redisCache = require('../libs/RedisCache')
 
 exports.get = (req, res) => {
-  const key = 'get-user';
+  const key = 'get-user'
   async.waterfall([
     (cb) => {
       redisCache.get(key, (err, users) => {
         if (users) {
-          return MiscHelper.responses(res, resultUsers)
+          return MiscHelper.responses(res, users)
         } else {
-          cb(null)
+          cb(err)
         }
       })
     },
