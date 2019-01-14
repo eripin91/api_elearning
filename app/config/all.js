@@ -16,6 +16,9 @@ const CONFIG = {
   REDIS: {
     host: process.env.REDIS_HOST || '127.0.0.1',
     port: process.env.REDIS_PORT || 6379,
+    options: {
+      db: 0
+    },
     auth_pass: process.env.REDIS_PASSWORD
   },
   SESSION_SECRET: process.env.SESSION_SECRET || 'zd_TEkgW5C_$8]j.',

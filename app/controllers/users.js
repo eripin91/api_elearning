@@ -1,19 +1,30 @@
 /* global _ */
+
 'use strict'
 
 const async = require('async')
 const usersModel = require('../models/users')
 const redisCache = require('../libs/RedisCache')
 
+/*
+ * GET : '/users/get'
+ *
+ * @desc Get user list
+ *
+ * @param  {object} req - Parameters for request
+ *
+ * @return {object} Request object
+ */
+
 exports.get = (req, res) => {
   const key = 'get-user'
   async.waterfall([
     (cb) => {
-      redisCache.get(key, (err, users) => {
+      redisCache.get(key, users => {
         if (users) {
           return MiscHelper.responses(res, users)
         } else {
-          cb(err)
+          cb(null)
         }
       })
     },
@@ -23,7 +34,7 @@ exports.get = (req, res) => {
       })
     },
     (dataUser, cb) => {
-      redisCache.set(key, 600, dataUser)
+      redisCache.setex(key, 600, dataUser)
       console.log('proccess cached')
       cb(null, dataUser)
     }
