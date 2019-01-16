@@ -146,6 +146,7 @@ DROP TABLE IF EXISTS `courses_tab`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `courses_tab` (
   `courseid` int(10) NOT NULL AUTO_INCREMENT,
+  `classid` int(10) NOT NULL,
   `name` varchar(150) NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` datetime NOT NULL,

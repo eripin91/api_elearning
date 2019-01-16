@@ -41,7 +41,7 @@ exports.get = (req, res) => {
   ],
   (errCourses, resultCourses) => {
     if (!errCourses) {
-      return MiscHelper.responses(res, resultCourses)
+      return MiscHelper.responses(res, req.params.idClass resultCourses)
     } else {
       return MiscHelper.errorCustomStatus(res, errCourses, 400)
     }

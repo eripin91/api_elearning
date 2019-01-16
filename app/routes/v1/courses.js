@@ -5,6 +5,6 @@
 var Route = express.Router()
 
 Route
-  .get('/', CoursesControllers.get)
-  .get('/:idCourse/', CoursesControllers.detail)
+  .get('/:idClass/', CoursesControllers.get)
+  .get('/course/:idCourse/', CoursesControllers.detail)
 module.exports = Route
