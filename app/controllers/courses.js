@@ -39,13 +39,13 @@ exports.get = (req, res) => {
       cb(null, dataCourses)
     }
   ],
-    (errCourses, resultCourses) => {
-      if (!errCourses) {
-        return MiscHelper.responses(res, resultCourses)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errCourses, 400)
-      }
-    })
+  (errCourses, resultCourses) => {
+    if (!errCourses) {
+      return MiscHelper.responses(res, resultCourses)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errCourses, 400)
+    }
+  })
 }
 
 exports.detail = (req, res) => {
@@ -71,11 +71,11 @@ exports.detail = (req, res) => {
       cb(null, dataDetail)
     }
   ],
-    (errDetail, resultDetail) => {
-      if (!errDetail) {
-        return MiscHelper.responses(res, resultDetail)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errDetail, 400)
-      }
-    })
+  (errDetail, resultDetail) => {
+    if (!errDetail) {
+      return MiscHelper.responses(res, resultDetail)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errDetail, 400)
+    }
+  })
 }
