@@ -34,7 +34,7 @@ exports.get = (req, res) => {
       })
     },
     (dataUser, cb) => {
-      redisCache.setex(key, 600, dataUser)
+      redisCache.setex(key, 0, dataUser)
       console.log('proccess cached')
       cb(null, dataUser)
     }
