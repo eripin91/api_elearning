@@ -29,7 +29,7 @@ exports.get = (req, res) => {
       })
     },
     (cb) => {
-      coursesModel.get(req, (errCourses, resultCourses) => {
+      coursesModel.get(req, req.params.idClass, (errCourses, resultCourses) => {
         cb(errCourses, resultCourses)
       })
     },
@@ -41,7 +41,7 @@ exports.get = (req, res) => {
   ],
   (errCourses, resultCourses) => {
     if (!errCourses) {
-      return MiscHelper.responses(res, req.params.idClass resultCourses)
+      return MiscHelper.responses(res, resultCourses)
     } else {
       return MiscHelper.errorCustomStatus(res, errCourses, 400)
     }
@@ -49,7 +49,7 @@ exports.get = (req, res) => {
 }
 
 exports.detail = (req, res) => {
-  const key = 'get-detail-' + req.params.idCourse
+  const key = 'get-course-detail-' + req.params.idCourse
   async.waterfall([
     (cb) => {
       redisCache.get(key, details => {
