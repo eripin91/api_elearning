@@ -1,10 +1,28 @@
 'use strict'
 
 module.exports = {
+  getAssessmentDetail: (conn, assessmentid, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      connection.query(`SELECT * FROM assessment_tab WHERE assessmentid = ?`, [assessmentid], (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
   getQuestions: (conn, assessmentid, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
       connection.query(`SELECT * FROM assessment_detail_tab WHERE assessmentid = ?`, [assessmentid], (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  getQuestionsDetail: (conn, assessmentid, qNo, userId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      const questioNo = parseInt(qNo) < 0 ? 1 : parseInt(qNo)
+
+      connection.query(`SELECT a.detailid,a.assessmentid,a.question_type,a.question,a.options,b.answer as user_answer FROM assessment_detail_tab a LEFT JOIN users_assessment_tab b ON a.detailid=b.detailassessmentid WHERE a.assessmentid = ? AND b.userid = ? ORDER BY a.detailid ASC LIMIT ${questioNo - 1},1`, [assessmentid, userId], (err, rows) => {
         callback(err, rows)
       })
     })
@@ -17,10 +35,10 @@ module.exports = {
       })
     })
   },
-  checkUserAlreadyAnswer: (conn, userId, assessmentId, parentId, callback) => {
+  checkUserAlreadyAnswer: (conn, userId, detailAssessmentId, parentId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT * FROM users_assessment_tab WHERE userid = ? AND assessmentid = ? AND parentid = ? LIMIT 1`, [userId, assessmentId, parentId], (err, rows) => {
+      connection.query(`SELECT * FROM users_assessment_tab WHERE userid = ? AND detailassessmentid = ? AND parentid = ? LIMIT 1`, [userId, detailAssessmentId, parentId], (err, rows) => {
         callback(err, rows)
       })
     })
