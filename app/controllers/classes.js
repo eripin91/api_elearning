@@ -36,7 +36,7 @@ exports.get = (req, res) => {
 }
 
 exports.getDetail = (req, res) => {
-  const key = 'get-class-detail-' + req.params.classId 
+  const key = 'get-class-detail-' + req.params.classId
   async.waterfall([
     (cb) => {
       redisCache.get(key, detail => {

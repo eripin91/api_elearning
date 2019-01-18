@@ -1,3 +1,5 @@
+/* global ClassesControllers */
+
 'use strict'
 
 var Route = express.Router()

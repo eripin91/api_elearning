@@ -24,5 +24,5 @@ module.exports = {
         callback(err, rows)
       })
     })
-  },
+  }
 }
