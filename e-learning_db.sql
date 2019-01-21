@@ -225,8 +225,8 @@ INSERT INTO `courses_material_tab` (`materialid`, `detailid`, `name`, `descripti
 --
 
 CREATE TABLE `courses_tab` (
-  `courseid` int(10) NOT NULL,
-  `classid` int(11) NOT NULL,
+  `courseid` int(10) NOT NULL AUTO_INCREMENT,
+  `classid` int(10) NOT NULL,
   `name` varchar(150) NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` datetime NOT NULL,
