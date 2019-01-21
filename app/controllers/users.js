@@ -34,7 +34,7 @@ exports.get = (req, res) => {
       })
     },
     (dataUser, cb) => {
-      redisCache.setex(key, 600, dataUser)
+      redisCache.setex(key, 0, dataUser)
       console.log('proccess cached')
       cb(null, dataUser)
     }
@@ -43,6 +43,37 @@ exports.get = (req, res) => {
       return MiscHelper.responses(res, resultUsers)
     } else {
       return MiscHelper.errorCustomStatus(res, errUsers, 400)
+    }
+  })
+}
+
+exports.getUserClass = (req, res) => {
+  const key = 'get-user-class-' + req.params.userId
+  async.waterfall([
+    (cb) => {
+      redisCache.get(key, userClass => {
+        if (userClass) {
+          return MiscHelper.responses(res, userClass)
+        } else {
+          cb(null)
+        }
+      })
+    },
+    (cb) => {
+      usersModel.getUserClass(req, req.params.userId, (errClass, resultClass) => {
+        cb(errClass, resultClass)
+      })
+    },
+    (dataUserClass, cb) => {
+      redisCache.setex(key, 600, dataUserClass)
+      console.log('prossess cached')
+      cb(null, dataUserClass)
+    }
+  ], (errUserClass, resultUserClass) => {
+    if (!errUserClass) {
+      return MiscHelper.responses(res, resultUserClass)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errUserClass)
     }
   })
 }
