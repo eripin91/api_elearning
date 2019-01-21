@@ -4,6 +4,7 @@
 
 const async = require('async')
 const assessmentModel = require('../models/assessment')
+const classesModel = require('../models/classes')
 const redisCache = require('../libs/RedisCache')
 
 /*
@@ -56,12 +57,12 @@ exports.getDetail = (req, res) => {
           return o.question_type === 'single-choice'
         }), '[0]')
 
+        redisCache.setex(key, 81600, dataAssessmentObj)
         cb(errAssessment, dataAssessmentObj)
       })
     }
   ], (errAssessment, resultAssessment) => {
     if (!errAssessment) {
-      // return MiscHelper.responses(res, _.result(resultAssessment, '[0]', {}))
       return MiscHelper.responses(res, resultAssessment)
     } else {
       return MiscHelper.errorCustomStatus(res, errAssessment, 400)
@@ -72,7 +73,7 @@ exports.getDetail = (req, res) => {
 /*
  * GET : '/assessment/get-questions/:parentId'
  *
- * @desc Get assessment detail
+ * @desc Get assessment question detail
  *
  * @param  {object} req - Parameters for request
  * @param  {objectId} req.params.parentId - Id from course or material
@@ -187,7 +188,7 @@ exports.getQuestionsDetail = (req, res) => {
 /*
  * GET : '/assessment/get-questions-number/:parentId'
  *
- * @desc Get assessment detail
+ * @desc Get assessment questions
  *
  * @param  {object} req - Parameters for request
  * @param  {objectId} req.params.parentId - Id from course or material
@@ -245,7 +246,7 @@ exports.getQuestionsNumber = (req, res) => {
 /*
  * GET : '/assessment/answer/:parentId'
  *
- * @desc Get assessment detail
+ * @desc Get assessment answer
  *
  * @param  {object} req - Parameters for request
  * @param  {objectId} req.params.parentId - Id from course or material
@@ -286,7 +287,6 @@ exports.answer = (req, res) => {
             if (err) {
               cb(err)
             } else {
-              console.log(resultUpdateAnswer)
               return MiscHelper.responses(res, resultUpdateAnswer)
             }
           })
@@ -305,6 +305,8 @@ exports.answer = (req, res) => {
       }
 
       assessmentModel.insertUserAnswer(req, data, (err, result) => {
+        const key = `get-assessment-rank:${req.params.classId}`
+        redisCache.del(key)
         cb(err, result)
       })
     }
@@ -313,6 +315,59 @@ exports.answer = (req, res) => {
       return MiscHelper.responses(res, resultAssessment)
     } else {
       return MiscHelper.errorCustomStatus(res, errAssessment, 400)
+    }
+  })
+}
+
+/*
+ * GET : '/assessment/rank/:classId'
+ *
+ * @desc Get rank by class
+ *
+ * @param  {object} req - Parameters for request
+ * @param  {objectId} req.params.classId - Id from course or material
+ *
+ * @return {object} Request object
+ */
+
+exports.getRank = (req, res) => {
+  req.checkParams('classId', 'classId is required').notEmpty().isInt()
+
+  if (req.validationErrors()) {
+    return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
+  }
+  const userId = req.headers['e-learning-user']
+  const key = `get-assessment-rank:${req.params.classId}:${new Date().getTime()}` // disabled cache
+  async.waterfall([
+    (cb) => {
+      redisCache.get(key, users => {
+        if (users) {
+          return MiscHelper.responses(res, users)
+        } else {
+          cb(null)
+        }
+      })
+    },
+    (cb) => {
+      classesModel.getRank(req, req.params.classId, (errRank, resultRank) => {
+        cb(errRank, resultRank)
+      })
+    },
+    (dataRank, cb) => {
+      classesModel.getUserRank(req, userId, (errRank, userRank) => {
+        const rank = {
+          rank: dataRank,
+          user: _.result(userRank, '[0]')
+        }
+        redisCache.setex(key, 81600, rank)
+        cb(errRank, rank)
+      })
+    }
+  ], (errRank, resultRank) => {
+    if (!errRank) {
+      return MiscHelper.responses(res, resultRank)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errRank, 400)
     }
   })
 }
