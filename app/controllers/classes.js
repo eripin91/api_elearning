@@ -36,6 +36,7 @@ exports.get = (req, res) => {
 }
 
 exports.getDetail = (req, res) => {
+  req.checkParams('classId', 'classId is required').notEmpty().isInt()
   const key = 'get-class-detail-' + req.params.classId
   async.waterfall([
     (cb) => {
@@ -80,7 +81,6 @@ exports.getRec = (req, res) => {
     },
     (cb) => {
       classesModel.getRec(req, (errRec, resultRec) => {
-        console.log('Arhammm')
         cb(errRec, resultRec)
       })
     },
@@ -97,3 +97,17 @@ exports.getRec = (req, res) => {
     }
   })
 }
+
+// exports.userClass = (req, res) => {
+//   req.checkBody('userId', 'userId is required').notEmpty().isInt()
+//   req.checkBody('classId', 'classId is required').notEmpty().isInt()
+
+//   const userId = req.body.userId
+//   const classId = req.body.classId
+
+//   async.waterfall([
+//     (cb) => {
+
+//     }
+//   ])
+// }
