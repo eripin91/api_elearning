@@ -30,7 +30,7 @@ module.exports = {
   getQuestionsNumber: (conn, assessmentId, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT a.detailid,b.answer FROM assessment_detail_tab a LEFT JOIN users_assessment_tab b ON a.assessmentid = b.assessmentid WHERE a.assessmentid = ? AND b.userid = ? ORDER BY a.detailid ASC`, [assessmentId, userId], (err, rows) => {
+      connection.query(`SELECT a.detailid,b.answer FROM assessment_detail_tab a LEFT JOIN users_assessment_tab b ON a.assessmentid = b.detailassessmentid WHERE a.assessmentid = ? AND b.userid = ? ORDER BY a.detailid ASC`, [assessmentId, userId], (err, rows) => {
         callback(err, rows)
       })
     })
@@ -39,6 +39,14 @@ module.exports = {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
       connection.query(`SELECT * FROM users_assessment_tab WHERE userid = ? AND detailassessmentid = ? AND parentid = ? LIMIT 1`, [userId, detailAssessmentId, parentId], (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  getTotalQuestion: (conn, assessmentId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      connection.query(`SELECT COUNT(*) as total, question_type FROM assessment_detail_tab WHERE assessmentid = ? GROUP BY question_type`, [assessmentId], (err, rows) => {
         callback(err, rows)
       })
     })

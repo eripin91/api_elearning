@@ -2,7 +2,7 @@
 --
 -- Host: localhost    Database: e-learning_db
 -- ------------------------------------------------------
--- Server version	10.3.11-MariaDB-1:10.3.11+maria~bionic
+-- Server version 10.3.11-MariaDB-1:10.3.11+maria~bionic
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -16,10 +16,41 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `assessment_tab`
+-- Table structure for table `assessment_detail_tab`
 --
 CREATE DATABASE `e-learning_db`;
 USE `e-learning_db`;
+
+DROP TABLE IF EXISTS `assessment_detail_tab`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `assessment_detail_tab` (
+  `detailid` int(10) NOT NULL AUTO_INCREMENT,
+  `assessmentid` int(10) NOT NULL,
+  `question_type` enum('single-choice','essay') NOT NULL DEFAULT 'single-choice',
+  `question` varchar(350) NOT NULL,
+  `options` text NOT NULL,
+  `answer` text NOT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  PRIMARY KEY (`detailid`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `assessment_detail_tab`
+--
+
+LOCK TABLES `assessment_detail_tab` WRITE;
+/*!40000 ALTER TABLE `assessment_detail_tab` DISABLE KEYS */;
+INSERT INTO `assessment_detail_tab` VALUES (1,1,'single-choice','Test I','[ \n    {\n        \"isAnswer\" : false,\n        \"_id\" : 1,\n        \"label\" : \"Risky\"\n    }, \n    {\n        \"isAnswer\" : false,\n        \"_id\" : 2,\n        \"label\" : \"Danang\"\n    }, \n    {\n        \"isAnswer\" : true,\n        \"_id\" : 3,\n        \"label\" : \"Bram\"\n    }, \n    {\n        \"isAnswer\" : false,\n        \"_id\" : 5,\n        \"label\" : \"Bang Sastra\"\n    }\n]','1',1,'2019-01-19 00:00:00','2019-01-19 00:00:00'),(2,1,'single-choice','Test II','[ \n    {\n        \"isAnswer\" : false,\n        \"_id\" : 1,\n        \"label\" : \"Risky\"\n    }, \n    {\n        \"isAnswer\" : false,\n        \"_id\" : 2,\n        \"label\" : \"Danang\"\n    }, \n    {\n        \"isAnswer\" : true,\n        \"_id\" : 3,\n        \"label\" : \"Bram\"\n    }, \n    {\n        \"isAnswer\" : false,\n        \"_id\" : 5,\n        \"label\" : \"Bang Sastra\"\n    }\n]','1',1,'2019-01-19 00:00:00','2019-01-19 00:00:00'),(3,1,'essay','Test III','[ \n    {\n        \"isAnswer\" : false,\n        \"_id\" : 1,\n        \"label\" : \"Risky\"\n    }, \n    {\n        \"isAnswer\" : false,\n        \"_id\" : 2,\n        \"label\" : \"Danang\"\n    }, \n    {\n        \"isAnswer\" : true,\n        \"_id\" : 3,\n        \"label\" : \"Bram\"\n    }, \n    {\n        \"isAnswer\" : false,\n        \"_id\" : 5,\n        \"label\" : \"Bang Sastra\"\n    }\n]','1',1,'2019-01-19 00:00:00','2019-01-19 00:00:00');
+/*!40000 ALTER TABLE `assessment_detail_tab` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `assessment_tab`
+--
 
 DROP TABLE IF EXISTS `assessment_tab`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -27,17 +58,13 @@ DROP TABLE IF EXISTS `assessment_tab`;
 CREATE TABLE `assessment_tab` (
   `assessmentid` int(10) NOT NULL AUTO_INCREMENT,
   `parentid` int(10) NOT NULL,
-  `type` tinyint(1) NOT NULL DEFAULT 1,
+  `title` varchar(150) NOT NULL,
   `duration` int(10) NOT NULL,
-  `question_type` tinyint(1) NOT NULL DEFAULT 1,
-  `question` varchar(350) NOT NULL,
-  `options` text NOT NULL,
-  `answer` text NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`assessmentid`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -46,6 +73,7 @@ CREATE TABLE `assessment_tab` (
 
 LOCK TABLES `assessment_tab` WRITE;
 /*!40000 ALTER TABLE `assessment_tab` DISABLE KEYS */;
+INSERT INTO `assessment_tab` VALUES (1,1,'Test Dasar',600,1,'2019-01-19 00:00:00','2019-01-19 00:00:00');
 /*!40000 ALTER TABLE `assessment_tab` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -115,6 +143,7 @@ DROP TABLE IF EXISTS `courses_material_tab`;
 CREATE TABLE `courses_material_tab` (
   `materialid` int(10) NOT NULL AUTO_INCREMENT,
   `detailid` int(10) NOT NULL,
+  `assessmentid` int(10) NOT NULL,
   `name` varchar(150) NOT NULL,
   `description` varchar(350) NOT NULL,
   `video_url` varchar(300) NOT NULL,
@@ -147,6 +176,8 @@ DROP TABLE IF EXISTS `courses_tab`;
 CREATE TABLE `courses_tab` (
   `courseid` int(10) NOT NULL AUTO_INCREMENT,
   `name` varchar(150) NOT NULL,
+  `preassessmentid` int(10) NOT NULL,
+  `finalassessmentid` int(10) NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
@@ -284,15 +315,15 @@ DROP TABLE IF EXISTS `users_assessment_tab`;
 CREATE TABLE `users_assessment_tab` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `userid` int(10) NOT NULL,
-  `assessmentid` int(10) NOT NULL,
+  `detailassessmentid` int(10) NOT NULL,
   `parentid` int(10) NOT NULL,
-  `type` tinyint(1) NOT NULL DEFAULT 1,
   `answer` text NOT NULL,
+  `is_correct` tinyint(1) NOT NULL DEFAULT 0,
   `status` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -301,6 +332,7 @@ CREATE TABLE `users_assessment_tab` (
 
 LOCK TABLES `users_assessment_tab` WRITE;
 /*!40000 ALTER TABLE `users_assessment_tab` DISABLE KEYS */;
+INSERT INTO `users_assessment_tab` VALUES (1,1,1,1,'2',0,1,'2019-01-18 02:34:32','2019-01-21 11:27:08'),(2,1,2,2,'2',0,1,'2019-01-18 02:36:54','2019-01-21 11:27:08');
 /*!40000 ALTER TABLE `users_assessment_tab` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -432,4 +464,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-01-14 19:07:23
+-- Dump completed on 2019-01-21  7:30:42

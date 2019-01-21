@@ -39,10 +39,30 @@ exports.getDetail = (req, res) => {
       assessmentModel.getAssessmentDetail(req, req.params.assessmentId, (errAssessment, resultAssessment) => {
         cb(errAssessment, resultAssessment)
       })
+    },
+    (dataAssessment, cb) => {
+      assessmentModel.getTotalQuestion(req, req.params.assessmentId, (errAssessment, resultAssessmentTotal) => {
+        let dataResultAssessmentTotal = JSON.stringify(resultAssessmentTotal)
+        dataResultAssessmentTotal = JSON.parse(dataResultAssessmentTotal)
+
+        let dataAssessmentObj = JSON.stringify(dataAssessment)
+        dataAssessmentObj = JSON.parse(dataAssessmentObj)[0]
+
+        dataAssessmentObj.totalEssay = _.result(_.filter(dataResultAssessmentTotal, o => {
+          return o.question_type === 'essay'
+        }), '[0]')
+
+        dataAssessmentObj.totalSingleChoice = _.result(_.filter(dataResultAssessmentTotal, o => {
+          return o.question_type === 'single-choice'
+        }), '[0]')
+
+        cb(errAssessment, dataAssessmentObj)
+      })
     }
   ], (errAssessment, resultAssessment) => {
     if (!errAssessment) {
-      return MiscHelper.responses(res, _.result(resultAssessment, '[0]', {}))
+      // return MiscHelper.responses(res, _.result(resultAssessment, '[0]', {}))
+      return MiscHelper.responses(res, resultAssessment)
     } else {
       return MiscHelper.errorCustomStatus(res, errAssessment, 400)
     }
@@ -237,9 +257,9 @@ exports.getQuestionsNumber = (req, res) => {
  */
 
 exports.answer = (req, res) => {
-  req.checkParams('parentId', 'parentId is required').notEmpty().isInt()
+  req.checkBody('parentId', 'parentId is required').notEmpty().isInt()
   req.checkBody('userId', 'userId is required').notEmpty().isInt()
-  req.checkBody('detailAssessmentId', 'detailAssessmentId is required').notEmpty().isInt()
+  req.checkBody('questionId', 'questionId is required').notEmpty().isInt()
   req.checkBody('answer', 'answer is required').notEmpty()
 
   if (req.validationErrors()) {
@@ -247,8 +267,8 @@ exports.answer = (req, res) => {
   }
 
   const userId = req.body.userId
-  const detailAssessmentId = req.body.detailAssessmentId
-  const parentId = req.params.parentId
+  const detailAssessmentId = req.body.questionId
+  const parentId = req.body.parentId
   const answer = req.body.answer
 
   async.waterfall([
