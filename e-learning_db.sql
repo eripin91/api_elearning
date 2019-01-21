@@ -41,25 +41,24 @@ CREATE TABLE `assessment_detail_tab` (
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`detailid`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `assessment_tab`
 --
 
-CREATE TABLE `assessment_detail_tab` (
-  `detailid` int(10) NOT NULL AUTO_INCREMENT,
-  `assessmentid` int(10) NOT NULL,
-  `question_type` enum('single-choice','essay') NOT NULL DEFAULT 'single-choice',
-  `question` varchar(350) NOT NULL,
-  `options` text NOT NULL,
-  `answer` text NOT NULL,
+CREATE TABLE `assessment_tab` (
+  `assessmentid` int(10) NOT NULL AUTO_INCREMENT,
+  `parentid` int(10) NOT NULL,
+  `title` varchar(150) NOT NULL,
+  `duration` int(10) NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
-  PRIMARY KEY (`detailid`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+  PRIMARY KEY (`assessmentid`)
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
+
 
 --
 -- Struktur dari tabel `classes_tab`
