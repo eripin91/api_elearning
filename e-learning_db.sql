@@ -2,6 +2,7 @@
 -- version 4.6.6deb5
 -- https://www.phpmyadmin.net/
 --
+-- Server version 10.3.11-MariaDB-1:10.3.11+maria~bionic
 -- Host: localhost:3306
 -- Generation Time: 18 Jan 2019 pada 16.43
 -- Versi Server: 5.7.24-0ubuntu0.18.04.1
@@ -10,13 +11,13 @@
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
-
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
 --
+-- Table structure for table `assessment_detail_tab`
 -- Database: `e-learning_db`
 --
 
@@ -26,21 +27,39 @@ SET time_zone = "+00:00";
 -- Struktur dari tabel `assessment_tab`
 --
 
-CREATE TABLE `assessment_tab` (
+DROP TABLE IF EXISTS `assessment_detail_tab`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `assessment_detail_tab` (
+  `detailid` int(10) NOT NULL AUTO_INCREMENT,
   `assessmentid` int(10) NOT NULL,
-  `parentid` int(10) NOT NULL,
-  `type` tinyint(1) NOT NULL DEFAULT '1',
-  `duration` int(10) NOT NULL,
-  `question_type` tinyint(1) NOT NULL DEFAULT '1',
+  `question_type` enum('single-choice','essay') NOT NULL DEFAULT 'single-choice',
   `question` varchar(350) NOT NULL,
   `options` text NOT NULL,
   `answer` text NOT NULL,
-  `status` tinyint(1) NOT NULL DEFAULT '0',
+  `status` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` datetime NOT NULL,
-  `updated_at` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `updated_at` datetime NOT NULL,
+  PRIMARY KEY (`detailid`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- --------------------------------------------------------
+--
+-- Table structure for table `assessment_tab`
+--
+
+CREATE TABLE `assessment_detail_tab` (
+  `detailid` int(10) NOT NULL AUTO_INCREMENT,
+  `assessmentid` int(10) NOT NULL,
+  `question_type` enum('single-choice','essay') NOT NULL DEFAULT 'single-choice',
+  `question` varchar(350) NOT NULL,
+  `options` text NOT NULL,
+  `answer` text NOT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  PRIMARY KEY (`detailid`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 
 --
 -- Struktur dari tabel `classes_tab`
@@ -71,7 +90,7 @@ INSERT INTO `classes_tab` (`classid`, `guruid`, `name`, `description`, `cover`, 
 (6, 3, 'Menyanyi Tanpa Suara Bagus Jili 2', 'Ya ga mungkinlah suara jelek jadi penyanyi', 'https://3.bp.blogspot.com/-_SEglsqFXEQ/VzlJ4I2-O6I/AAAAAAAAA9E/XSfXHh-iUjA45SFEySq5F4sk5P0c91zUwCLcB/s640/nyanyikamarmandi2.jpg', 0, 1, '2019-01-31 00:00:00', '2019-01-31 00:00:00'),
 (7, 2, 'Ternak lele sampai ke mars', 'Bersama Elon Musk ingin ke mars untuk membuat kolam lele', 'https://1.bp.blogspot.com/-5Kmw6DbdES4/Wg_gbErmEiI/AAAAAAAAJhA/UrKCS0aXu8IKc6Ge1ppsOEIDyLRR7rJ6gCLcBGAs/s1600/Umpan%2Bikan%2Blele.jpg', 0, 8, '2019-01-31 00:00:00', '2019-01-31 00:00:00');
 
--- --------------------------------------------------------
+----------------------------------------------------------
 
 --
 -- Struktur dari tabel `courses_detail_tab`
@@ -151,6 +170,7 @@ INSERT INTO `courses_detail_tab` (`detailid`, `courseid`, `name`, `status`, `cre
 CREATE TABLE `courses_material_tab` (
   `materialid` int(10) NOT NULL,
   `detailid` int(10) NOT NULL,
+  `assessmentid` int(10) NOT NULL,
   `name` varchar(150) NOT NULL,
   `description` varchar(350) NOT NULL,
   `video_url` varchar(300) NOT NULL,
@@ -218,7 +238,7 @@ INSERT INTO `courses_material_tab` (`materialid`, `detailid`, `name`, `descripti
 (49, 49, 'Video Materi', 'Materinya Susah Banget Bro', 'https://www.youtube.com/watch?v=1XW1Ygatsz4', 'https://i.pinimg.com/236x/1d/ed/37/1ded37e086c186c881cf96002e3afb03--spider-man-fandoms.jpg', 0, 115, 1, '2019-01-31 00:00:00', '2019-01-31 00:00:00'),
 (50, 50, 'Video Materi', 'Materinya Susah Banget Bro', 'https://www.youtube.com/watch?v=1XW1Ygatsz4', 'https://i.pinimg.com/236x/1d/ed/37/1ded37e086c186c881cf96002e3afb03--spider-man-fandoms.jpg', 0, 115, 1, '2019-01-31 00:00:00', '2019-01-31 00:00:00');
 
--- --------------------------------------------------------
+----------------------------------------------------------
 
 --
 -- Struktur dari tabel `courses_tab`
@@ -228,7 +248,9 @@ CREATE TABLE `courses_tab` (
   `courseid` int(10) NOT NULL AUTO_INCREMENT,
   `classid` int(10) NOT NULL,
   `name` varchar(150) NOT NULL,
-  `status` tinyint(1) NOT NULL DEFAULT '0',
+  `preassessmentid` int(10) NOT NULL,
+  `finalassessmentid` int(10) NOT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -352,20 +374,18 @@ CREATE TABLE `notification_tab` (
 --
 -- Struktur dari tabel `users_assessment_tab`
 --
-
 CREATE TABLE `users_assessment_tab` (
-  `id` int(10) NOT NULL,
+  `id` int(10) NOT NULL AUTO_INCREMENT,
   `userid` int(10) NOT NULL,
-  `assessmentid` int(10) NOT NULL,
+  `detailassessmentid` int(10) NOT NULL,
   `parentid` int(10) NOT NULL,
-  `type` tinyint(1) NOT NULL DEFAULT '1',
   `answer` text NOT NULL,
-  `status` tinyint(1) NOT NULL DEFAULT '0',
+  `is_correct` tinyint(1) NOT NULL DEFAULT 0,
+  `status` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` datetime NOT NULL,
-  `updated_at` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
+  `updated_at` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 
 --
 -- Struktur dari tabel `users_classes_tab`
