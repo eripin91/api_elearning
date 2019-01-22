@@ -39,18 +39,18 @@ exports.get = (req, res) => {
       cb(null, dataCourses)
     }
   ],
-  (errCourses, resultCourses) => {
-    if (!errCourses) {
-      return MiscHelper.responses(res, resultCourses)
-    } else {
-      return MiscHelper.errorCustomStatus(res, errCourses, 400)
-    }
-  })
+    (errCourses, resultCourses) => {
+      if (!errCourses) {
+        return MiscHelper.responses(res, resultCourses)
+      } else {
+        return MiscHelper.errorCustomStatus(res, errCourses, 400)
+      }
+    })
 }
 
 
 /*
- * GET : '/courses/courseDetail/idCourse
+ * GET : '/courses/course/idCourse/
  *
  * @desc Get course detail
  *
@@ -82,18 +82,18 @@ exports.detail = (req, res) => {
       cb(null, dataDetail)
     }
   ],
-  (errDetail, resultDetail) => {
-    if (!errDetail) {
-      return MiscHelper.responses(res, resultDetail)
-    } else {
-      return MiscHelper.errorCustomStatus(res, errDetail, 400)
-    }
-  })
+    (errDetail, resultDetail) => {
+      if (!errDetail) {
+        return MiscHelper.responses(res, resultDetail)
+      } else {
+        return MiscHelper.errorCustomStatus(res, errDetail, 400)
+      }
+    })
 }
 
 
 /*
- * GET : '/courses/idClass/
+ * GET : '/detail/idDetail
  *
  * @desc Get course list
  *
@@ -102,19 +102,19 @@ exports.detail = (req, res) => {
  * @return {object} Reuest object
  */
 exports.material = (req, res) => {
-  const key = 'get-material-' + req.params.idMaterial
+  const key = 'get-course-material-' + req.params.idDetail
   async.waterfall([
     (cb) => {
       redisCache.get(key, materials => {
-        if(materials) {
+        if (materials) {
           return MiscHelper.responses(res, materials)
         } else {
           cb(null)
         }
-      }) 
+      })
     },
     (cb) => {
-      coursesModel.getDetail(req, req.params.idDetail, (errMaterial, resultMaterial) => {
+      coursesModel.getMaterial(req, req.params.idDetail, (errMaterial, resultMaterial) => {
         cb(errMaterial, resultMaterial)
       })
     },
@@ -124,12 +124,44 @@ exports.material = (req, res) => {
       cb(null, dataMaterial)
     }
   ],
-  (errMaterial, resultMaterial) => {
-    if(!errMaterial) {
-      return MiscHelper.responses(res, resultMaterial)
-    } else {
-      return MiscHelper.errorCustomStatus(res, errDetail, 400)
+    (errMaterial, resultMaterial) => {
+      if (!errMaterial) {
+        return MiscHelper.responses(res, resultMaterial)
+      } else {
+        return MiscHelper.errorCustomStatus(res, errMaterial, 400)
+      }
     }
-  }
   )
+}
+
+exports.materialDetail = (req, res) => {
+  const key = 'get-course-material-detail-:${req.params.materialDetailId}'
+  async.waterfall([
+    (cb) => {
+      redisCache.get(key, materials => {
+        if (materials) {
+          return MiscHelper.responses(res, materials)
+        } else {
+          cb(null)
+        }
+      })
+    },
+    (cb) => {
+      coursesModel.getMaterialDetail(req, req.params.materialDetailId, (errMaterialDetail, resultMaterialDetail) => {
+        cb(errMaterialDetail, resultMaterialDetail)
+      })
+    },
+    (dataMaterialDetail, cb) => {
+      redisCache.setex(key, 600, dataMaterialDetail)
+      console.log('process cached')
+      cb(null, dataMaterialDetail)
+    }
+  ],
+    (errMaterialDetail, resultMaterialDetail) => {
+      if (!errMaterialDetail) {
+        return MiscHelper.responses(res, resultMaterialDetail)
+      } else {
+        return MiscHelper.errorCustomStatus(res, errMaterialDetail, 400)
+      }
+    })
 }

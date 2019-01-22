@@ -6,6 +6,8 @@ var Route = express.Router()
 
 Route
   .get('/:idClass/', CoursesControllers.get)
-  .get('/courseDetail/:idCourse/', CoursesControllers.detail)
-  .get('/:idCourse/detail/:idDetail', CoursesControllers.material)
+  .get('/course/:idCourse/', CoursesControllers.detail)
+  .get('/detail/:idDetail', CoursesControllers.material)
+  .get('/material/:materialDetailId', CoursesControllers.materialDetail)
+  
 module.exports = Route
