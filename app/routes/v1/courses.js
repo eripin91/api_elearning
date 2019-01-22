@@ -9,5 +9,6 @@ Route
   .get('/course/:idCourse/', CoursesControllers.detail)
   .get('/detail/:idDetail', CoursesControllers.material)
   .get('/material/:materialDetailId', CoursesControllers.materialDetail)
+  .get('/detail/:idDetail/material/:materialDetailId', CoursesControllers.nextMaterial)
 
 module.exports = Route
