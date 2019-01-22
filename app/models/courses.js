@@ -5,7 +5,7 @@ module.exports = {
     conn.getConnection((errConnection, connection) => {
       console.log(classId)
       if (errConnection) console.error(errConnection)
-      connection.query('SELECT c.*, SUM(cm.duration) as durasi FROM courses_tab c LEFT JOIN courses_detail_tab cd ON cd.courseid = c.courseid LEFT JOIN courses_material_tab cm ON cm.detailid = cd.detailid WHERE c.classid = ? GROUP BY c.courseid, c.name, c.status ', classId, (err, rows) => {
+      connection.query('SELECT c.* FROM courses_tab c JOIN classes_tab ct ON c.classid = ct.classid WHERE c.classid = ?', classId, (err, rows) => {
         callback(err, rows)
       })
     })

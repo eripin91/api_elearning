@@ -7,7 +7,7 @@ const coursesModel = require('../models/courses')
 const redisCache = require('../libs/RedisCache')
 
 /*
- * GET : '/courses/get/
+ * GET : '/courses/idClass/
  *
  * @desc Get course list
  *
@@ -48,6 +48,17 @@ exports.get = (req, res) => {
   })
 }
 
+
+/*
+ * GET : '/courses/courseDetail/idCourse
+ *
+ * @desc Get course detail
+ *
+ * @param {object} req - Parameters for request
+ *
+ * @return {object} Request object
+ */
+
 exports.detail = (req, res) => {
   const key = 'get-course-detail-' + req.params.idCourse
   async.waterfall([
@@ -80,9 +91,45 @@ exports.detail = (req, res) => {
   })
 }
 
-// exports.material = (req, res) => {
-//   const key = 'get-material-' + req.params.idMaterial
-//   async.waterfall([
 
-//   ])
-// }
+/*
+ * GET : '/courses/idClass/
+ *
+ * @desc Get course list
+ *
+ * @param {object} req - Parameters for request
+ *
+ * @return {object} Reuest object
+ */
+exports.material = (req, res) => {
+  const key = 'get-material-' + req.params.idMaterial
+  async.waterfall([
+    (cb) => {
+      redisCache.get(key, materials => {
+        if(materials) {
+          return MiscHelper.responses(res, materials)
+        } else {
+          cb(null)
+        }
+      }) 
+    },
+    (cb) => {
+      coursesModel.getDetail(req, req.params.idDetail, (errMaterial, resultMaterial) => {
+        cb(errMaterial, resultMaterial)
+      })
+    },
+    (dataMaterial, cb) => {
+      redisCache.setex(key, 600, dataMaterial)
+      console.log('process cached')
+      cb(null, dataMaterial)
+    }
+  ],
+  (errMaterial, resultMaterial) => {
+    if(!errMaterial) {
+      return MiscHelper.responses(res, resultMaterial)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errDetail, 400)
+    }
+  }
+  )
+}
