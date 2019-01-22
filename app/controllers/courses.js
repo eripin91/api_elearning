@@ -39,13 +39,13 @@ exports.get = (req, res) => {
       cb(null, dataCourses)
     }
   ],
-    (errCourses, resultCourses) => {
-      if (!errCourses) {
-        return MiscHelper.responses(res, resultCourses)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errCourses, 400)
-      }
-    })
+  (errCourses, resultCourses) => {
+    if (!errCourses) {
+      return MiscHelper.responses(res, resultCourses)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errCourses, 400)
+    }
+  })
 }
 
 /*
@@ -81,13 +81,13 @@ exports.detail = (req, res) => {
       cb(null, dataDetail)
     }
   ],
-    (errDetail, resultDetail) => {
-      if (!errDetail) {
-        return MiscHelper.responses(res, resultDetail)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errDetail, 400)
-      }
-    })
+  (errDetail, resultDetail) => {
+    if (!errDetail) {
+      return MiscHelper.responses(res, resultDetail)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errDetail, 400)
+    }
+  })
 }
 
 /*
@@ -122,13 +122,13 @@ exports.material = (req, res) => {
       cb(null, dataMaterial)
     }
   ],
-    (errMaterial, resultMaterial) => {
-      if (!errMaterial) {
-        return MiscHelper.responses(res, resultMaterial)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errMaterial, 400)
-      }
+  (errMaterial, resultMaterial) => {
+    if (!errMaterial) {
+      return MiscHelper.responses(res, resultMaterial)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errMaterial, 400)
     }
+  }
   )
 }
 
@@ -164,13 +164,13 @@ exports.materialDetail = (req, res) => {
       cb(null, dataMaterialDetail)
     }
   ],
-    (errMaterialDetail, resultMaterialDetail) => {
-      if (!errMaterialDetail) {
-        return MiscHelper.responses(res, resultMaterialDetail)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errMaterialDetail, 400)
-      }
-    })
+  (errMaterialDetail, resultMaterialDetail) => {
+    if (!errMaterialDetail) {
+      return MiscHelper.responses(res, resultMaterialDetail)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errMaterialDetail, 400)
+    }
+  })
 }
 
 /*
@@ -206,7 +206,7 @@ exports.nextMaterial = (req, res) => {
       cb(null, dataMaterialDetail)
     }
   ], (errMaterialDetail, resultMaterialDetail) => {
-    if(!errMaterialDetail) {
+    if (!errMaterialDetail) {
       return MiscHelper.responses(res, resultMaterialDetail)
     } else {
       return MiscHelper.errorCustomStatus(res, errMaterialDetail, 400)

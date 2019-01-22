@@ -10,9 +10,9 @@ const redisCache = require('../libs/RedisCache')
  * GET : '/material/userid
  *
  *  @desc GET Downloaded Course
- * 
+ *
  * @param {object} req - Parameter for Request
- * 
+ *
  * @return {object} Request object
 */
 
