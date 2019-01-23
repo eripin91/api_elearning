@@ -31,9 +31,9 @@ exports.get = (req, res) => {
     (cb) => {
       courseModel.getUserMaterial(req, req.params.userId, (errMaterial, resultMaterial) => {
         resultMaterial.map((result) => {
-          let minutes = Math.floor(result.duration / 60)  
+          let minutes = Math.floor(result.duration / 60)
           let second = result.duration - (minutes * 60)
-          result.duration = minutes + ':' + second 
+          result.duration = minutes + ':' + second
         })
         console.log(resultMaterial[0])
         cb(errMaterial, resultMaterial)
@@ -53,13 +53,73 @@ exports.get = (req, res) => {
   })
 }
 
-exports.updateMaterial = (req, res) => {
-  req.checkBody('userid', 'userid is Required').notEmpty.isInt()
-  req.checkBody('materialid', 'materialid is Required').notEmpty.isInt()
+exports.update = (req, res) => {
+  // req.checkBody('userId', 'userid is Required').notEmpty.isInt()
+  // req.checkBody('materialId', 'materialid is Required').notEmpty.isInt()
 
-  if (req.validationError()) {
-    return MiscHelper.errorCustomStatus(res, req.validationError(true))
-  }
+  // if (req.validationError()) {
+  //   return MiscHelper.errorCustomStatus(res, req.validationError(true))
+  // }
 
-  // const userid = req.body.user
+  const userId = req.body.userId
+  const materialId = req.body.materialId
+  let is_downloaded = req.body.is_downloaded
+  let is_done_watching = req.body.is_done_watching
+  async.waterfall([
+    (cb) => {
+      courseModel.checkUserMaterialAlreadyExist(req, userId, materialId, (errCheck, resultCheck) => {
+        if (_.isEmpty(resultCheck) || errCheck) {
+          cb(errCheck)
+        } else {
+          const data = {
+            updated_at: new Date()
+          }
+          if (req.body.is_downloaded === undefined) {
+            Object.assign(data, { is_done_watching: req.body.is_done_watching })
+          } else if (req.body.is_done_watching === undefined) {
+            Object.assign(data, { is_downloaded: req.body.is_downloaded })
+          }
+          console.log(data)
+          courseModel.updateUserMaterial(req, resultCheck[0].id, data, materialId, (err, resultUpdateMaterial) => {
+            if (err) {
+              cb(err)
+            } else {
+              return MiscHelper.responses(res, resultUpdateMaterial)
+            }
+          })
+        }
+      })
+    },
+    (cb) => {
+      const data = {
+        userid: userId,
+        materialid: materialId,
+        watchingduration: 0,
+        is_done_watching: 0,
+        is_downloaded: 0,
+        status: 1,
+        created_at: new Date(),
+        updated_at: new Date()
+      }
+      if (is_downloaded === undefined) {
+        data.is_done_watching = is_done_watching
+      } else if (is_done_watching === undefined) {
+        data.is_downloaded = is_downloaded
+      }
+
+      courseModel.insertUserMaterial(req, data, (err, result) => {
+        const key = 'get-material-user-' + req.params.userId
+        redisCache.del(key)
+        cb(err, result)
+      })
+    }
+
+  ],
+    (errMaterial, resultMaterial) => {
+      if (!errMaterial) {
+        return MiscHelper.responses(res, resultMaterial)
+      } else {
+        return MiscHelper.errorCustomStatus(res, errMaterial, 400)
+      }
+    })
 }
