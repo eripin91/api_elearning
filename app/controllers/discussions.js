@@ -38,17 +38,17 @@ exports.getThread = (req, res) => {
 exports.insertThreadTitle = (req, res) => {
   req.checkBody('userId', 'userId is required').notEmpty().isInt()
   req.checkBody('courseId', 'courseId is required').notEmpty().isInt()
-  req.checkBody('title', 'title is required').notEmpty()
+  req.checkBody('content', 'title is required').notEmpty()
 
   const data = {
     userid: req.body.userId,
     courseid: req.body.courseId,
-    post_title: req.body.title,
-    post_content: '',
-    parent:0,
-    status:1,
+    post_title: '',
+    post_content: req.body.content,
+    parent: 0,
+    status: 1,
     created_at: new Date(),
-    updated_at: new Date() 
+    updated_at: new Date()
   }
 
   discussionsModel.insertThreadTitle(req, data, (errInsert, resultInsert) => {
@@ -80,6 +80,58 @@ exports.insertThreadContent = (req, res) => {
       return MiscHelper.responses(res, resultInsert)
     } else {
       return MiscHelper.errorCustomStatus(res, errInsert, 400)
+    }
+  })
+}
+
+exports.like = (req, res) => {
+  req.checkBody('discussionId', 'discussionId is required').notEmpty().isInt()
+  req.checkBody('userId', 'userId is required').notEmpty().isInt()
+  req.checkBody('status', 'status is required')
+
+  const discussionId = req.body.discussionId
+  const userId = req.body.userId
+  const status = req.body.status
+
+  async.waterfall([
+    (cb) => {
+      discussionsModel.checkLike(req, discussionId, userId, (errCheck, resultCheck) => {
+        if (_.isEmpty(resultCheck) || (errCheck)) {
+          cb(errCheck)
+        } else {
+          const data = {
+            status: status,
+            updated_at: new Date()
+          }
+
+          discussionsModel.updateLike(req, resultCheck[0].id, data, (err, resultUpdateLike) => {
+            if (err) {
+              cb(err)
+            } else {
+              return MiscHelper.responses(res, resultUpdateLike)
+            }
+          })
+        }
+      })
+    },
+    (cb) => {
+      const data = {
+        discussionid: discussionId,
+        userid: userId,
+        status: status,
+        created_at: new Date(),
+        updated_at: new Date()
+      }
+
+      discussionsModel.insertLike(req, data, (err, result) => {
+        cb(err, result)
+      })
+    }
+  ], (errLike, resultLike) => {
+    if(!errLike) {
+      return MiscHelper.responses(res, resultLike)
+    } else {
+      return MiscHelper.responses(res, errLike, 400)
     }
   })
 }
