@@ -8,6 +8,34 @@ module.exports = {
         callback(err, rows)
       })
     })
+  },
+  checkUserMaterialAlreadyExist: (conn, userId, materialId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.log(errConnection)
+      connection.query('SELECT * FROM users_material_progress_tab um WHERE userid = ? AND materialid = ?', [userId, materialId], (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  insertUserMaterial: (conn, data, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      connection.query('INSERT INTO users_material_progress_tab SET ?', data, (err, rows) => {
+        if (err) {
+          callback(err)
+        } else {
+          callback(null, _.merge(data, { id: rows.insertId }))
+        }
+      })
+    })
+  },
+  updateUserMaterial: (conn, id, data, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      connection.query('UPDATE users_material_progress_tab SET ? WHERE userid = ?', [data, id], (errUpdate, resultUpdate) => {
+        callback(errUpdate, resultUpdate.affectedRows > 0 ? _.merge(data, { userid: id }) : [])
+      })
+    })
   }
 
 }

@@ -30,6 +30,11 @@ exports.get = (req, res) => {
     },
     (cb) => {
       coursesModel.get(req, req.params.idClass, (errCourses, resultCourses) => {
+        resultCourses.course.map((course) => {
+          let minutes = Math.floor(course.durasi / 60)
+          let second = course.durasi - (minutes * 60)
+          course.durasi = minutes + ':' + second
+        })
         cb(errCourses, resultCourses)
       })
     },
@@ -113,6 +118,11 @@ exports.material = (req, res) => {
     },
     (cb) => {
       coursesModel.getMaterial(req, req.params.idDetail, (errMaterial, resultMaterial) => {
+        resultMaterial.map((result) => {
+          let minutes = Math.floor(result.duration / 60)
+          let second = result.duration - (minutes * 60)
+          result.duration = minutes + ':' + second
+        })
         cb(errMaterial, resultMaterial)
       })
     },
@@ -155,6 +165,14 @@ exports.materialDetail = (req, res) => {
     },
     (cb) => {
       coursesModel.getMaterialDetail(req, req.params.materialDetailId, (errMaterialDetail, resultMaterialDetail) => {
+        let minutes = Math.floor(resultMaterialDetail.duration / 60)
+        let second = resultMaterialDetail.duration - (minutes * 60)
+        resultMaterialDetail.duration = minutes + ':' + second
+        resultMaterialDetail.next.map((result) => {
+          minutes = Math.floor(result.duration / 60)
+          second = result.duration - (minutes * 60)
+          result.duration = minutes + ':' + second
+        })
         cb(errMaterialDetail, resultMaterialDetail)
       })
     },

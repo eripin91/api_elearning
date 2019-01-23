@@ -30,6 +30,12 @@ exports.get = (req, res) => {
     },
     (cb) => {
       courseModel.getUserMaterial(req, req.params.userId, (errMaterial, resultMaterial) => {
+        resultMaterial.map((result) => {
+          let minutes = Math.floor(result.duration / 60)  
+          let second = result.duration - (minutes * 60)
+          result.duration = minutes + ':' + second 
+        })
+        console.log(resultMaterial[0])
         cb(errMaterial, resultMaterial)
       })
     },
@@ -45,4 +51,15 @@ exports.get = (req, res) => {
       return MiscHelper.errorCustomStatus(res, errMaterial, 400)
     }
   })
+}
+
+exports.updateMaterial = (req, res) => {
+  req.checkBody('userid', 'userid is Required').notEmpty.isInt()
+  req.checkBody('materialid', 'materialid is Required').notEmpty.isInt()
+
+  if (req.validationError()) {
+    return MiscHelper.errorCustomStatus(res, req.validationError(true))
+  }
+
+  // const userid = req.body.user
 }
