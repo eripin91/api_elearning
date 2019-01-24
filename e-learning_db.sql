@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Jan 22, 2019 at 02:22 PM
--- Server version: 5.7.24-0ubuntu0.18.04.1
+-- Generation Time: 24 Jan 2019 pada 23.38
+-- Versi Server: 5.7.24-0ubuntu0.18.04.1
 -- PHP Version: 7.2.10-0ubuntu0.18.04.1
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -23,7 +23,7 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `assessment_tab`
+-- Struktur dari tabel `assessment_tab`
 --
 
 CREATE TABLE `assessment_tab` (
@@ -43,7 +43,7 @@ CREATE TABLE `assessment_tab` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `classes_tab`
+-- Struktur dari tabel `classes_tab`
 --
 
 CREATE TABLE `classes_tab` (
@@ -59,7 +59,7 @@ CREATE TABLE `classes_tab` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `classes_tab`
+-- Dumping data untuk tabel `classes_tab`
 --
 
 INSERT INTO `classes_tab` (`classid`, `guruid`, `name`, `description`, `cover`, `status`, `priority`, `created_at`, `updated_at`) VALUES
@@ -74,7 +74,7 @@ INSERT INTO `classes_tab` (`classid`, `guruid`, `name`, `description`, `cover`, 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `courses_detail_tab`
+-- Struktur dari tabel `courses_detail_tab`
 --
 
 CREATE TABLE `courses_detail_tab` (
@@ -87,7 +87,7 @@ CREATE TABLE `courses_detail_tab` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `courses_detail_tab`
+-- Dumping data untuk tabel `courses_detail_tab`
 --
 
 INSERT INTO `courses_detail_tab` (`detailid`, `courseid`, `name`, `status`, `created_at`, `updated_at`) VALUES
@@ -145,7 +145,7 @@ INSERT INTO `courses_detail_tab` (`detailid`, `courseid`, `name`, `status`, `cre
 -- --------------------------------------------------------
 
 --
--- Table structure for table `courses_material_tab`
+-- Struktur dari tabel `courses_material_tab`
 --
 
 CREATE TABLE `courses_material_tab` (
@@ -163,7 +163,7 @@ CREATE TABLE `courses_material_tab` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `courses_material_tab`
+-- Dumping data untuk tabel `courses_material_tab`
 --
 
 INSERT INTO `courses_material_tab` (`materialid`, `detailid`, `name`, `description`, `video_url`, `thumbnails`, `size`, `duration`, `status`, `created_at`, `updated_at`) VALUES
@@ -221,7 +221,7 @@ INSERT INTO `courses_material_tab` (`materialid`, `detailid`, `name`, `descripti
 -- --------------------------------------------------------
 
 --
--- Table structure for table `courses_tab`
+-- Struktur dari tabel `courses_tab`
 --
 
 CREATE TABLE `courses_tab` (
@@ -234,7 +234,7 @@ CREATE TABLE `courses_tab` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `courses_tab`
+-- Dumping data untuk tabel `courses_tab`
 --
 
 INSERT INTO `courses_tab` (`courseid`, `classid`, `name`, `status`, `created_at`, `updated_at`) VALUES
@@ -277,7 +277,7 @@ INSERT INTO `courses_tab` (`courseid`, `classid`, `name`, `status`, `created_at`
 -- --------------------------------------------------------
 
 --
--- Table structure for table `discussion_likes_tab`
+-- Struktur dari tabel `discussion_likes_tab`
 --
 
 CREATE TABLE `discussion_likes_tab` (
@@ -289,10 +289,21 @@ CREATE TABLE `discussion_likes_tab` (
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+--
+-- Dumping data untuk tabel `discussion_likes_tab`
+--
+
+INSERT INTO `discussion_likes_tab` (`id`, `discussionid`, `userid`, `status`, `created_at`, `updated_at`) VALUES
+(1, 6, 3, 1, '2019-01-31 00:00:00', '2019-01-31 00:00:00'),
+(2, 6, 2, 1, '2019-01-31 00:00:00', '2019-01-23 13:23:00'),
+(3, 8, 1, 1, '2019-01-23 12:43:35', '2019-01-23 12:43:35'),
+(4, 6, 4, 1, '2019-01-24 12:43:15', '2019-01-24 12:43:15'),
+(5, 17, 1, 1, '2019-01-24 13:20:20', '2019-01-24 13:20:20');
+
 -- --------------------------------------------------------
 
 --
--- Table structure for table `discussion_tab`
+-- Struktur dari tabel `discussion_tab`
 --
 
 CREATE TABLE `discussion_tab` (
@@ -308,19 +319,29 @@ CREATE TABLE `discussion_tab` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `discussion_tab`
+-- Dumping data untuk tabel `discussion_tab`
 --
 
 INSERT INTO `discussion_tab` (`discussionid`, `userid`, `courseid`, `post_title`, `post_content`, `parent`, `status`, `created_at`, `updated_at`) VALUES
-(6, 1, 2, 'Ini gimana nih ?', '', 0, 1, '2019-01-22 12:42:43', '2019-01-22 12:42:43'),
-(7, 2, 2, 'Biar kaya gini gimana nih caranya gan ?', '', 0, 1, '2019-01-22 13:11:43', '2019-01-22 13:11:43'),
+(6, 1, 2, '', 'Ini gimana nih ?', 0, 1, '2019-01-22 12:42:43', '2019-01-22 12:42:43'),
+(7, 2, 2, '', 'Biar kaya gini gimana nih caranya gan ?', 0, 1, '2019-01-22 13:11:43', '2019-01-22 13:11:43'),
 (8, 1, NULL, '', 'Jadi jawabannya gini bro', 6, 1, '2019-01-22 14:11:43', '2019-01-22 14:11:43'),
-(9, 3, NULL, '', 'Jadi jawabannya gitu bro, ngerti kgk', 6, 1, '2019-01-22 14:13:25', '2019-01-22 14:13:25');
+(9, 3, NULL, '', 'Jadi jawabannya gitu bro, ngerti kgk', 6, 1, '2019-01-22 14:13:25', '2019-01-22 14:13:25'),
+(10, 3, NULL, '', 'Jadi jawabannya gitu bro, ngerti kgk', 7, 1, '2019-01-22 14:26:55', '2019-01-22 14:26:55'),
+(11, 1, 2, '', 'Jadi saya bingungnya gini gan', 0, 1, '2019-01-23 10:48:58', '2019-01-23 10:48:58'),
+(12, 2, NULL, '', 'Jadi jawabannya ada banyak bro, mw yang mana ?', 11, 1, '2019-01-23 10:53:21', '2019-01-23 10:53:21'),
+(13, 4, 2, '', 'Ini yang bener gimana gan ?', 0, 1, '2019-01-24 12:43:58', '2019-01-24 12:43:58'),
+(14, 2, NULL, '', 'Jadi salahnya disini gan ', 13, 1, '2019-01-24 12:44:28', '2019-01-24 12:44:28'),
+(15, 2, NULL, '', 'bangsat lu', 6, 1, '2019-01-24 13:16:10', '2019-01-24 13:16:10'),
+(16, 4, 2, '', 'Cara Buat Game gimana ya?', 0, 1, '2019-01-24 13:18:28', '2019-01-24 13:18:28'),
+(17, 1, 2, '', 'Cara Buat Game gimana ya?', 0, 1, '2019-01-24 13:18:38', '2019-01-24 13:18:38'),
+(18, 2, NULL, '', 'Game Apaan Gan?', 17, 1, '2019-01-24 13:19:29', '2019-01-24 13:19:29'),
+(19, 2, NULL, '', 'Game Ganteng', 17, 1, '2019-01-24 13:48:46', '2019-01-24 13:48:46');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `guru_tab`
+-- Struktur dari tabel `guru_tab`
 --
 
 CREATE TABLE `guru_tab` (
@@ -334,7 +355,7 @@ CREATE TABLE `guru_tab` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `guru_tab`
+-- Dumping data untuk tabel `guru_tab`
 --
 
 INSERT INTO `guru_tab` (`guruid`, `fullname`, `profile_picture`, `description`, `status`, `created_at`, `updated_at`) VALUES
@@ -346,7 +367,7 @@ INSERT INTO `guru_tab` (`guruid`, `fullname`, `profile_picture`, `description`, 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `notification_tab`
+-- Struktur dari tabel `notification_tab`
 --
 
 CREATE TABLE `notification_tab` (
@@ -361,7 +382,7 @@ CREATE TABLE `notification_tab` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `users_assessment_tab`
+-- Struktur dari tabel `users_assessment_tab`
 --
 
 CREATE TABLE `users_assessment_tab` (
@@ -379,7 +400,7 @@ CREATE TABLE `users_assessment_tab` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `users_classes_tab`
+-- Struktur dari tabel `users_classes_tab`
 --
 
 CREATE TABLE `users_classes_tab` (
@@ -396,7 +417,7 @@ CREATE TABLE `users_classes_tab` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `users_classes_tab`
+-- Dumping data untuk tabel `users_classes_tab`
 --
 
 INSERT INTO `users_classes_tab` (`id`, `userid`, `classid`, `score`, `finished_at`, `is_done`, `certificate`, `status`, `created_at`, `updated_at`) VALUES
@@ -411,7 +432,7 @@ INSERT INTO `users_classes_tab` (`id`, `userid`, `classid`, `score`, `finished_a
 -- --------------------------------------------------------
 
 --
--- Table structure for table `users_material_progress_tab`
+-- Struktur dari tabel `users_material_progress_tab`
 --
 
 CREATE TABLE `users_material_progress_tab` (
@@ -429,7 +450,7 @@ CREATE TABLE `users_material_progress_tab` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `users_tab`
+-- Struktur dari tabel `users_tab`
 --
 
 CREATE TABLE `users_tab` (
@@ -446,7 +467,7 @@ CREATE TABLE `users_tab` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `users_tab`
+-- Dumping data untuk tabel `users_tab`
 --
 
 INSERT INTO `users_tab` (`userid`, `email`, `fullname`, `phone`, `profile_picture`, `password`, `salt`, `status`, `created_at`, `updated_at`) VALUES
@@ -457,7 +478,7 @@ INSERT INTO `users_tab` (`userid`, `email`, `fullname`, `phone`, `profile_pictur
 -- --------------------------------------------------------
 
 --
--- Table structure for table `users_videos_tab`
+-- Struktur dari tabel `users_videos_tab`
 --
 
 CREATE TABLE `users_videos_tab` (
@@ -590,12 +611,12 @@ ALTER TABLE `courses_tab`
 -- AUTO_INCREMENT for table `discussion_likes_tab`
 --
 ALTER TABLE `discussion_likes_tab`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 --
 -- AUTO_INCREMENT for table `discussion_tab`
 --
 ALTER TABLE `discussion_tab`
-  MODIFY `discussionid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `discussionid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 --
 -- AUTO_INCREMENT for table `guru_tab`
 --
