@@ -35,6 +35,37 @@ exports.getThread = (req, res) => {
   })
 }
 
+exports.getThreadDetail = (req, res) => {
+  const key = 'get-thread-detail' + req.params.discussionId + '-' + req.query.sortBy + '-' + req.query.orderBy
+  async.waterfall([
+    (cb) => {
+      redisCache.get(key, detail => {
+        if (detail) {
+          return MiscHelper.responses(res, detail)
+        } else {
+          cb(null)
+        }
+      })
+    },
+    (cb) => {
+      discussionsModel.getThreadDetail(req, req.params.discussionId, req.query.sortBy, req.query.orderBy, (errThreadDetail, resultThreadDetail) => {
+        cb(errThreadDetail, resultThreadDetail)
+      })
+    },
+    (dataThreadDetail, cb) => {
+      redisCache.setex(key, 600, dataThreadDetail)
+      console.log('proccess cached')
+      cb(null, dataThreadDetail)
+    }
+  ], (errDetail, resultDetail) => {
+    if (!errDetail) {
+      return MiscHelper.responses(res, resultDetail)
+    } else {
+      return MiscHelper.responses(res, errDetail)
+    }
+  })
+}
+
 exports.insertThreadTitle = (req, res) => {
   req.checkBody('userId', 'userId is required').notEmpty().isInt()
   req.checkBody('courseId', 'courseId is required').notEmpty().isInt()
@@ -53,6 +84,9 @@ exports.insertThreadTitle = (req, res) => {
 
   discussionsModel.insertThreadTitle(req, data, (errInsert, resultInsert) => {
     if (!errInsert) {
+      //delete redis thread by course
+      const key = 'get-thread-' + req.params.courseId
+      redisCache.del(key)
       return MiscHelper.responses(res, resultInsert)
     } else {
       return MiscHelper.errorCustomStatus(res, errInsert, 400)
@@ -77,6 +111,9 @@ exports.insertThreadContent = (req, res) => {
 
   discussionsModel.insertThreadContent(req, data, (errInsert, resultInsert) => {
     if (!errInsert) {
+      //delete redis thread detail order by like desc
+      const key = 'get-thread-detail' + req.params.parentId + '-total_like-desc'
+      redisCache.del(key)
       return MiscHelper.responses(res, resultInsert)
     } else {
       return MiscHelper.errorCustomStatus(res, errInsert, 400)
@@ -128,7 +165,7 @@ exports.like = (req, res) => {
       })
     }
   ], (errLike, resultLike) => {
-    if(!errLike) {
+    if (!errLike) {
       return MiscHelper.responses(res, resultLike)
     } else {
       return MiscHelper.responses(res, errLike, 400)
