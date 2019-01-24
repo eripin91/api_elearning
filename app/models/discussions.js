@@ -20,7 +20,7 @@ module.exports = {
       connection.query('SELECT a.discussionid, b.fullname AS thread_starter, a.post_content, a.created_at, a.updated_at FROM discussion_tab a LEFT JOIN users_tab b ON a.userid = b.userid WHERE a.discussionid = ? AND a.parent=0', disscussionId, (err, rows) => {
         let data = rows[0]
         if (err) console.log(err)
-        
+
         connection.query('SELECT a.discussionid, a.parent, a.post_content, b.fullname, (SELECT COUNT(id) FROM discussion_likes_tab WHERE discussionid=a.discussionid AND status=1 GROUP BY discussionid) AS total_like, a.created_at as time, a.updated_at FROM discussion_tab a LEFT JOIN users_tab b ON a.userid=b.userid WHERE a.parent = ? ORDER BY ' + sortBy + ' ' + orderBy, data.discussionid, (err, result) => {
           data.reply = result
           callback(err, data)

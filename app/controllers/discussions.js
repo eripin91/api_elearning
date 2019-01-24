@@ -84,7 +84,7 @@ exports.insertThreadTitle = (req, res) => {
 
   discussionsModel.insertThreadTitle(req, data, (errInsert, resultInsert) => {
     if (!errInsert) {
-      //delete redis thread by course
+      // delete redis thread by course
       const key = 'get-thread-' + req.params.courseId
       redisCache.del(key)
       return MiscHelper.responses(res, resultInsert)
@@ -111,7 +111,7 @@ exports.insertThreadContent = (req, res) => {
 
   discussionsModel.insertThreadContent(req, data, (errInsert, resultInsert) => {
     if (!errInsert) {
-      //delete redis thread detail order by like desc
+      // delete redis thread detail order by like desc
       const key = 'get-thread-detail' + req.params.parentId + '-total_like-desc'
       redisCache.del(key)
       return MiscHelper.responses(res, resultInsert)
