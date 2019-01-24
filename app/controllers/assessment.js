@@ -160,6 +160,7 @@ exports.getQuestionsDetail = (req, res) => {
     },
     (cb) => {
       assessmentModel.getQuestionsDetail(req, req.params.parentId, req.body.qNo, (errAssessment, resultAssessment) => {
+        redisCache.setex(key, 81600, resultAssessment)
         cb(errAssessment, resultAssessment)
       })
     },
@@ -169,7 +170,7 @@ exports.getQuestionsDetail = (req, res) => {
       }
 
       assessmentModel.getUserAnswer(req, data[0].detailid, req.body.qNo, (errAnswer, userAnswer) => {
-        data[0].user_answer = _.result(userAnswer, '[0].answer')
+        data[0].user_answer = _.result(userAnswer, '[0].answer', '')
         cb(errAnswer, data)
       })
     },
@@ -182,7 +183,6 @@ exports.getQuestionsDetail = (req, res) => {
         dataAssessment.push(item)
         next()
       }, err => {
-        redisCache.setex(key, 81600, dataAssessment)
         cb(err, dataAssessment)
       })
     }
