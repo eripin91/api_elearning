@@ -63,8 +63,6 @@ exports.update = (req, res) => {
 
   const userId = req.body.userId
   const materialId = req.body.materialId
-  let is_downloaded = req.body.is_downloaded
-  let is_done_watching = req.body.is_done_watching
   async.waterfall([
     (cb) => {
       courseModel.checkUserMaterialAlreadyExist(req, userId, materialId, (errCheck, resultCheck) => {
@@ -79,8 +77,9 @@ exports.update = (req, res) => {
           } else if (req.body.is_done_watching === undefined) {
             Object.assign(data, { is_downloaded: req.body.is_downloaded })
           }
-          console.log(data)
-          courseModel.updateUserMaterial(req, resultCheck[0].id, data, materialId, (err, resultUpdateMaterial) => {
+          console.log(resultCheck)
+          courseModel.updateUserMaterial(req, resultCheck[0].id, data, (err, resultUpdateMaterial) => {
+            console.log(resultUpdateMaterial)
             if (err) {
               cb(err)
             } else {
@@ -101,10 +100,10 @@ exports.update = (req, res) => {
         created_at: new Date(),
         updated_at: new Date()
       }
-      if (is_downloaded === undefined) {
-        data.is_done_watching = is_done_watching
-      } else if (is_done_watching === undefined) {
-        data.is_downloaded = is_downloaded
+      if (req.body.is_downloaded === undefined) {
+        data.is_done_watching = req.body.is_done_watching
+      } else if (req.body.is_done_watching === undefined) {
+        data.is_downloaded = req.body.is_downloaded
       }
 
       courseModel.insertUserMaterial(req, data, (err, result) => {
@@ -115,11 +114,11 @@ exports.update = (req, res) => {
     }
 
   ],
-    (errMaterial, resultMaterial) => {
-      if (!errMaterial) {
-        return MiscHelper.responses(res, resultMaterial)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errMaterial, 400)
-      }
-    })
+  (errMaterial, resultMaterial) => {
+    if (!errMaterial) {
+      return MiscHelper.responses(res, resultMaterial)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errMaterial, 400)
+    }
+  })
 }

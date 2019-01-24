@@ -29,13 +29,12 @@ module.exports = {
       })
     })
   },
-  updateUserMaterial: (conn, id, data, materialid, callback) => {
+  updateUserMaterial: (conn, id, data, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
       console.log(data)
-      connection.query('UPDATE users_material_progress_tab SET ? WHERE userid = ? AND materialid = ?', [data, id, materialid], (errUpdate, resultUpdate) => {
-        
-        callback(errUpdate, resultUpdate.affectedRows > 0 ? _.merge(data, { userid: id }) : [])
+      connection.query('UPDATE users_material_progress_tab SET ? WHERE id', [data, id], (errUpdate, resultUpdate) => {
+        callback(errUpdate, resultUpdate.affectedRows > 0 ? _.merge(data, { id: id }) : [])
       })
     })
   }

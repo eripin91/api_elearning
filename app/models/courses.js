@@ -35,6 +35,24 @@ module.exports = {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
       connection.query('SELECT * FROM courses_material_tab WHERE materialid = ? AND status = 1', materialId, (err, rows) => {
+        function sizeCount ( size, length) {
+          var trigger = 0;
+          while (size >= length) {
+            trigger += 1
+            size = size / length
+          }
+          return {
+            size: size,
+            trigger: trigger
+          }
+        }
+
+        let size, descriptor
+        size = sizeCount(rows[0].size, 1024)
+        descriptor = ["Byte", "KB", "MB", "GB"]
+
+        rows[0].size = Math.ceil(size.size) + " " + descriptor[size.trigger]
+        console.log(rows[0].size)
         let data = rows[0]
         let errror = err
         if (errror) console.log(errror)
