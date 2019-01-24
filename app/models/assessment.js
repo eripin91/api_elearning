@@ -17,12 +17,20 @@ module.exports = {
       })
     })
   },
-  getQuestionsDetail: (conn, assessmentid, qNo, userId, callback) => {
+  getQuestionsDetail: (conn, assessmentid, qNo, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
       const questioNo = parseInt(qNo) < 0 ? 1 : parseInt(qNo)
 
-      connection.query(`SELECT a.detailid,a.assessmentid,a.question_type,a.question,a.options,b.answer as user_answer FROM assessment_detail_tab a LEFT JOIN users_assessment_tab b ON a.detailid=b.detailassessmentid WHERE a.assessmentid = ? AND b.userid = ? ORDER BY a.detailid ASC LIMIT ${questioNo - 1},1`, [assessmentid, userId], (err, rows) => {
+      connection.query(`SELECT a.detailid,a.assessmentid,a.question_type,a.question,a.options FROM assessment_detail_tab a WHERE a.assessmentid = ? ORDER BY a.detailid ASC LIMIT ${questioNo - 1},1`, [assessmentid], (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  getUserAnswer: (conn, detailAssessmentId, userId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      connection.query(`SELECT answer FROM users_assessment_tab WHERE detailassessmentid = ? AND userid = ? AND status = 1 LIMIT 1`, [detailAssessmentId, userId], (err, rows) => {
         callback(err, rows)
       })
     })

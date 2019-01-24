@@ -159,8 +159,18 @@ exports.getQuestionsDetail = (req, res) => {
       })
     },
     (cb) => {
-      assessmentModel.getQuestionsDetail(req, req.params.parentId, req.body.qNo, req.body.userId, (errAssessment, resultAssessment) => {
+      assessmentModel.getQuestionsDetail(req, req.params.parentId, req.body.qNo, (errAssessment, resultAssessment) => {
         cb(errAssessment, resultAssessment)
+      })
+    },
+    (data, cb) => {
+      if (!_.result(data, '[0]')) {
+        return MiscHelper.errorCustomStatus(res, 'Question not found.', 404)
+      }
+
+      assessmentModel.getUserAnswer(req, data[0].detailid, req.body.qNo, (errAnswer, userAnswer) => {
+        data[0].user_answer = _.result(userAnswer, '[0].answer')
+        cb(errAnswer, data)
       })
     },
     (data, cb) => {
@@ -336,6 +346,7 @@ exports.getRank = (req, res) => {
   if (req.validationErrors()) {
     return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
   }
+
   const userId = req.headers['e-learning-user']
   const key = `get-assessment-rank:${req.params.classId}:${new Date().getTime()}` // disabled cache
   async.waterfall([
