@@ -5,7 +5,6 @@
 const async = require('async')
 const coursesModel = require('../models/courses')
 const redisCache = require('../libs/RedisCache')
-
 /*
  * GET : '/courses/idClass/
  *
@@ -94,18 +93,17 @@ exports.detail = (req, res) => {
     }
   })
 }
-
 /*
- * GET : '/detail/idDetail
- *
- * @desc Get Material in BAB
- *
- * @param {object} req - Parameters for request
- *
- * @return {object} Request object
- */
+* GET : '/detail/idDetail
+*
+* @desc Get Material in BAB
+*
+* @param {object} req - Parameters for request
+*
+* @return {object} Request object
+*/
 exports.material = (req, res) => {
-  const key = 'get-course-material-' + req.params.idDetail
+  const key = 'get-user-course-material-' + req.params.idUser + req.params.idDetail
   async.waterfall([
     (cb) => {
       redisCache.get(key, materials => {
@@ -117,11 +115,15 @@ exports.material = (req, res) => {
       })
     },
     (cb) => {
-      coursesModel.getMaterial(req, req.params.idDetail, (errMaterial, resultMaterial) => {
+      coursesModel.getMaterial(req, req.params.idUser, req.params.idDetail, (errMaterial, resultMaterial) => {
+        console.log(resultMaterial)
         resultMaterial.map((result) => {
           let minutes = Math.floor(result.duration / 60)
           let second = result.duration - (minutes * 60)
           result.duration = minutes + ':' + second
+          if (result.is_downloaded === null) {
+            result.is_downloaded = 0
+          }
         })
         cb(errMaterial, resultMaterial)
       })
@@ -143,14 +145,14 @@ exports.material = (req, res) => {
 }
 
 /*
- * GET : '/material/idMaterial
- *
- * @desc Get Material
- *
- * @param {object} req - Parameters for request
- *
- * @return {object} Request object
- */
+* GET : '/material/idMaterial
+*
+* @desc Get Material
+*
+* @param {object} req - Parameters for request
+*
+* @return {object} Request object
+*/
 exports.materialDetail = (req, res) => {
   const key = 'get-course-material-detail-' + req.params.materialDetailId
   async.waterfall([
@@ -192,14 +194,14 @@ exports.materialDetail = (req, res) => {
 }
 
 /*
- * GET : '/courses/detail/idDetail/material/idMaterial
- *
- * @desc Get Material
- *
- * @param {object} req - Parameters for request
- *
- * @return {object} Request object
- */
+* GET : '/courses/detail/idDetail/material/idMaterial
+*
+* @desc Get Material
+*
+* @param {object} req - Parameters for request
+*
+* @return {object} Request object
+*/
 exports.nextMaterial = (req, res) => {
   const key = 'get-course-detail-material-' + req.params.materialDetailId
   async.waterfall([

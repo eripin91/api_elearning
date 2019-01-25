@@ -23,20 +23,31 @@ module.exports = {
       })
     })
   },
-  getMaterial: (conn, detailId, callback) => {
+  getMaterial: (conn, userId, detailId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query('SELECT cm.materialid, cd.detailid, cm.name, cm.thumbnails, cm.duration FROM courses_material_tab cm JOIN courses_detail_tab cd ON cm.detailid = cd.detailid JOIN courses_tab c ON cd.courseid = c.courseid WHERE cd.detailid = ? AND cd.status = 1', detailId, (err, rows) => {
+      connection.query('SELECT cm.materialid, cd.detailid, cm.name, cm.thumbnails, cm.duration, (SELECT b.is_downloaded FROM courses_material_tab a LEFT JOIN users_material_progress_tab b ON a.materialid = b.materialid LEFT JOIN users_tab c ON b.userid = c.userid WHERE c.userid = ? AND b.materialid = cm.materialid) AS is_downloaded FROM courses_material_tab cm LEFT JOIN courses_detail_tab cd ON cm.detailid = cd.detailid LEFT JOIN courses_tab c ON cd.courseid = c.courseid WHERE cd.detailid = ? AND cd.status = 1', [userId, detailId], (err, rows) => {
+        console.log(rows)
         callback(err, rows)
       })
     })
   },
+
+  getStatusDownload: (conn, userId, materialId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(connection)
+      connection.query('SELECT um.is_downloaded FROM users_material_progress_tab um LEFT JOIN users_tab u ON um.userid = u.userid LEFT JOIN courses_material_tab cm ON um.materialid = cm.materialid WHERE um.userid = ? AND um.materialid = ?', [userId, materialId], (rows) => {
+        callback(rows)
+      })
+    })
+  },
+
   getMaterialDetail: (conn, materialId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
       connection.query('SELECT * FROM courses_material_tab WHERE materialid = ? AND status = 1', materialId, (err, rows) => {
-        function sizeCount ( size, length) {
-          var trigger = 0;
+        function sizeCount (size, length) {
+          var trigger = 0
           while (size >= length) {
             trigger += 1
             size = size / length
@@ -49,9 +60,9 @@ module.exports = {
 
         let size, descriptor
         size = sizeCount(rows[0].size, 1024)
-        descriptor = ["Byte", "KB", "MB", "GB"]
+        descriptor = ['Byte', 'KB', 'MB', 'GB']
 
-        rows[0].size = Math.ceil(size.size) + " " + descriptor[size.trigger]
+        rows[0].size = Math.ceil(size.size) + ' ' + descriptor[size.trigger]
         console.log(rows[0].size)
         let data = rows[0]
         let errror = err
