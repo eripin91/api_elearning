@@ -4,6 +4,17 @@ const async = require('async')
 const discussionsModel = require('../models/discussions')
 const redisCache = require('../libs/RedisCache')
 
+/*
+ * GET : '/discussions/get/:courseId'
+ *
+ * @desc Get discussions by course
+ *
+ * @param  {object} req - Parameters for request
+ * @param  {objectId} req.params.courseId - Id course master
+ *
+ * @return {object} Request object
+ */
+
 exports.getThread = (req, res) => {
   const key = 'get-thread-' + req.params.courseId
   async.waterfall([
@@ -34,6 +45,17 @@ exports.getThread = (req, res) => {
     }
   })
 }
+
+/*
+ * GET : '/discussions/detail/:discussionId?sortBy={}&orderBy={}
+ *
+ * @desc Get discussions by course
+ *
+ * @param  {object} req - Parameters for request
+ * @param  {objectId} req.params.discussionId - Id discussion master
+ *
+ * @return {object} Request object
+ */
 
 exports.getThreadDetail = (req, res) => {
   const key = 'get-thread-detail' + req.params.discussionId + '-' + req.query.sortBy + '-' + req.query.orderBy
@@ -66,6 +88,19 @@ exports.getThreadDetail = (req, res) => {
   })
 }
 
+/*
+ * PUT : '/discussions
+ *
+ * @desc Post thread question
+ *
+ * @body  {object} req - body for request
+ * @body  {objectId} req.body.courseId - Id course master
+ * @body  {objectId} req.body.userId - Id user master
+ * @body  {objectId} req.body.content - thread content
+ *
+ * @return {object} Request object
+ */
+
 exports.insertThreadTitle = (req, res) => {
   req.checkBody('userId', 'userId is required').notEmpty().isInt()
   req.checkBody('courseId', 'courseId is required').notEmpty().isInt()
@@ -94,6 +129,19 @@ exports.insertThreadTitle = (req, res) => {
   })
 }
 
+/*
+ * PUT : '/discussions/reply
+ *
+ * @desc Post thread reply
+ *
+ * @body  {object} req - body for request
+ * @body  {objectId} req.body.parentId - Id discussion master
+ * @body  {objectId} req.body.userId - Id user master
+ * @body  {objectId} req.body.content - thread content
+ *
+ * @return {object} Request object
+ */
+
 exports.insertThreadContent = (req, res) => {
   req.checkBody('userId', 'userId is required').notEmpty().isInt()
   req.checkBody('parentId', 'parentId is required').notEmpty().isInt()
@@ -120,6 +168,19 @@ exports.insertThreadContent = (req, res) => {
     }
   })
 }
+
+/*
+ * POST : '/discussions/like
+ *
+ * @desc Post thread like
+ *
+ * @body  {object} req - body for request
+ * @body  {objectId} req.body.discussionId - Id discussion master
+ * @body  {objectId} req.body.userId - Id user master
+ * @body  {objectId} req.body.status - like status
+ *
+ * @return {object} Request object
+ */
 
 exports.like = (req, res) => {
   req.checkBody('discussionId', 'discussionId is required').notEmpty().isInt()
