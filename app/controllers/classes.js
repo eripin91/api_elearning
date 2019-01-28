@@ -18,6 +18,12 @@ exports.get = (req, res) => {
     },
     (cb) => {
       classesModel.get(req, (errClasses, resultClasses) => {
+        // console.log(resultClasses)
+        resultClasses.map((classes) => {
+          var minutes = Math.floor(classes.durasi / 60)
+          var second = classes.durasi - (minutes * 60)
+          classes.durasi = `${minutes}:${second}`
+        })
         cb(errClasses, resultClasses)
       })
     },
@@ -81,6 +87,11 @@ exports.getRec = (req, res) => {
     },
     (cb) => {
       classesModel.getRec(req, (errRec, resultRec) => {
+        resultRec.map((classes) => {
+          var minutes = Math.floor(classes.durasi / 60)
+          var second = classes.durasi - (minutes * 60)
+          classes.durasi = `${minutes}:${second}`
+        })
         cb(errRec, resultRec)
       })
     },
