@@ -94,7 +94,7 @@ exports.detail = (req, res) => {
   })
 }
 /*
-* GET : '/detail/idDetail
+* GET : '/detail/idUser/idDetail
 *
 * @desc Get Material in BAB
 *
