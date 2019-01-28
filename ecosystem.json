@@ -1,35 +1,35 @@
 {
   "apps" : [{
-    "name"      : "courses",
+    "name"      : "e-learning",
     "script"    : "app.js",
     "env": {
       "COMMON_VARIABLE": "true"
     },
     "env_production" : {
-      "NODE_ENV": "production"
+      "NODE_ENV": "development"
     }
   }],
   "deploy" : {
     "staging" : {
-      "user" : "palma",
-      "host" : "127.0.0.1",
+      "user" : "sigma",
+      "host" : "172.104.40.164",
       "ref"  : "origin/staging",
-      "repo" : "git@github.com:gratcy/courses.git",
-      "path" : "/home/palma/www/courses",
+      "repo" : "git@github.com:sigmatech-eripin/e-learning.git",
+      "path" : "/home/sigma/www/e-learning",
       "pre-deploy-local" : "git checkout . && echo 'Please wait... Deploying in process...'",
-      "post-deploy" : "npm install && NODE_ENV=production pm2 reload courses && pm2 ls && echo 'Please wait... Checking up the app starting up....' && sleep 7s && pm2 ls",
+      "post-deploy" : "npm install && NODE_ENV=development pm2 reload e-learning && pm2 ls && echo 'Please wait... Checking up the app starting up....' && sleep 7s && pm2 ls",
       "env"  : {
-        "NODE_ENV": "production"
+        "NODE_ENV": "development"
       }
     },
     "production" : {
-      "user" : "palma",
-      "host" : "127.0.0.1",
+      "user" : "sigma",
+      "host" : "172.104.40.164",
       "ref"  : "origin/prod",
-      "repo" : "git@github.com:gratcy/courses.git",
-      "path" : "/home/palma/www/courses",
+      "repo" : "git@github.com:sigmatech-eripin/e-learning.git",
+      "path" : "/home/sigma/www/prod-e-learning",
       "pre-deploy-local" : "git checkout . && echo 'Please wait... Deploying in process...'",
-      "post-deploy" : "npm install && NODE_ENV=production pm2 reload courses && pm2 ls && echo 'Please wait... Checking up the app starting up....' && sleep 7s && pm2 ls",
+      "post-deploy" : "npm install && NODE_ENV=production pm2 reload prod-e-learning && pm2 ls && echo 'Please wait... Checking up the app starting up....' && sleep 7s && pm2 ls",
       "env"  : {
         "NODE_ENV": "production"
       }
