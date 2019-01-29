@@ -4,7 +4,7 @@ module.exports = {
   get: (conn, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT a.classid, a.name, a.cover, b.fullname AS guru, COUNT(c.userid) AS member, (SELECT COUNT(d.detailid) FROM courses_detail_tab d JOIN courses_tab e ON d.courseid=e.courseid WHERE e.classid=a.classid) AS courses, (SELECT SUM(f.duration) FROM courses_material_tab f LEFT JOIN courses_detail_tab g ON f.detailid=g.detailid LEFT JOIN courses_tab h ON g.courseid=h.courseid WHERE h.classid = a.classid) AS durasi FROM classes_tab a LEFT JOIN guru_tab b ON a.guruid=b.guruid LEFT JOIN users_classes_tab c ON a.classid=c.classid WHERE a.status=1 GROUP BY a.classid`, (err, rows) => {
+      connection.query(`SELECT a.classid, a.name, a.cover, b.fullname AS guru, COUNT(c.userid) AS member, (SELECT COUNT(d.detailid) FROM courses_detail_tab d JOIN courses_tab e ON d.courseid=e.courseid WHERE e.classid=a.classid) AS courses, (SELECT SUM(f.duration) FROM courses_material_tab f LEFT JOIN courses_detail_tab g ON f.detailid=g.detailid LEFT JOIN courses_tab h ON g.courseid=h.courseid WHERE h.classid = a.classid) AS durasi, (SELECT AVG(rating) FROM users_rating_tab WHERE classid=a.classid) AS rating FROM classes_tab a LEFT JOIN guru_tab b ON a.guruid=b.guruid LEFT JOIN users_classes_tab c ON a.classid=c.classid WHERE a.status=1 GROUP BY a.classid`, (err, rows) => {
         callback(err, rows)
       })
     })
@@ -12,7 +12,7 @@ module.exports = {
   getRec: (conn, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT a.classid, a.priority, a.name, a.cover, b.fullname AS guru, COUNT(c.userid) AS member, (SELECT COUNT(d.detailid) FROM courses_detail_tab d JOIN courses_tab e ON d.courseid=e.courseid WHERE e.classid=a.classid) AS courses, (SELECT SUM(f.duration) FROM courses_material_tab f LEFT JOIN courses_detail_tab g ON f.detailid=g.detailid LEFT JOIN courses_tab h ON g.courseid=h.courseid WHERE h.classid = a.classid) AS durasi FROM classes_tab a LEFT JOIN guru_tab b ON a.guruid=b.guruid LEFT JOIN users_classes_tab c ON a.classid=c.classid WHERE a.status=1 GROUP BY a.classid ORDER BY a.priority DESC`, (err, rows) => {
+      connection.query(`SELECT a.classid, a.priority, a.name, a.cover, b.fullname AS guru, COUNT(c.userid) AS member, (SELECT COUNT(d.detailid) FROM courses_detail_tab d JOIN courses_tab e ON d.courseid=e.courseid WHERE e.classid=a.classid) AS courses, (SELECT SUM(f.duration) FROM courses_material_tab f LEFT JOIN courses_detail_tab g ON f.detailid=g.detailid LEFT JOIN courses_tab h ON g.courseid=h.courseid WHERE h.classid = a.classid) AS durasi, (SELECT AVG(rating) FROM users_rating_tab WHERE classid=a.classid) AS rating FROM classes_tab a LEFT JOIN guru_tab b ON a.guruid=b.guruid LEFT JOIN users_classes_tab c ON a.classid=c.classid WHERE a.status=1 GROUP BY a.classid ORDER BY a.priority DESC`, (err, rows) => {
         callback(err, rows)
       })
     })
@@ -66,6 +66,37 @@ module.exports = {
       if (errConnection) console.error(errConnection)
       connection.query(`UPDATE users_classes_tab SET ? WHERE userid = ?`, [data, id], (errUpdate, resultUpdate) => {
         callback(errUpdate, resultUpdate.affectedRows > 0 ? _.merge(data, { id: id }) : [])
+      })
+    })
+  },
+  checkRating: (conn, userId, classId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+
+      connection.query(`SELECT * FROM users_rating_tab WHERE userid = ? AND classid = ? LIMIT 1`, [userId, classId], (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  inserRating: (conn, data, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+
+      connection.query(`INSERT INTO users_rating_tab SET ?`, data, (err, rows) => {
+        if (err) {
+          callback(err)
+        } else {
+          callback(null, _.merge(data, { id: rows.inserId }))
+        }
+      })
+    })
+  },
+  updateRating: (conn, id, data, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection)  console.error(errConnection)
+
+      connection.query(`UPDATE users_rating_tab SET ? WHERE id = ?`, [data, id], (errUpdate, resultUpdate) => {
+        callback(errUpdate, resultUpdate.affectedRows > 0 ? _.merge(data, { id: id}) : [])
       })
     })
   }

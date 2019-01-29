@@ -43,7 +43,7 @@ exports.get = (req, res) => {
 
 exports.getDetail = (req, res) => {
   req.checkParams('classId', 'classId is required').notEmpty().isInt()
-  const key = 'get-class-detail-' + req.params.classId
+  const key = `get-class-detail-${req.params.classId}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, detail => {
@@ -74,7 +74,7 @@ exports.getDetail = (req, res) => {
 }
 
 exports.getRec = (req, res) => {
-  const key = 'get-recommmendation'
+  const key = 'get-recommendation'
   async.waterfall([
     (cb) => {
       redisCache.get(key, recommendation => {
@@ -109,16 +109,57 @@ exports.getRec = (req, res) => {
   })
 }
 
-// exports.userClass = (req, res) => {
-//   req.checkBody('userId', 'userId is required').notEmpty().isInt()
-//   req.checkBody('classId', 'classId is required').notEmpty().isInt()
+exports.rating = (req, res) => {
+  req.checkBody('userId', 'userId is required').notEmpty().isInt()
+  req.checkBody('classId', 'classId is requires').notEmpty().isInt()
+  req.checkBody('rating', 'rating is required').notEmpty().isInt()
 
-//   const userId = req.body.userId
-//   const classId = req.body.classId
+  const userId = req.body.userId
+  const classId = req.body.classId
+  const rating = req.body.rating
 
-//   async.waterfall([
-//     (cb) => {
+  async.waterfall([
+    (cb) => {
+      classesModel.checkRating(req, userId, classId, (errCheck, resultCheck) => {
+        if (_.isEmpty(resultCheck) || (errCheck)) {
+          cb(errCheck)
+        } else {
+          console.log('data ada')
+          const data = {
+            rating: rating,
+            updated_at: new Date()
+          }
 
-//     }
-//   ])
-// }
+          classesModel.updateRating(req, resultCheck[0].id, data, (err, resultUpdateRating) => {
+            if (err) {
+              cb(err)
+            } else {
+              return MiscHelper.responses(res, resultUpdateRating)
+            }
+          })
+        }
+      })
+    },
+    (cb) => {
+      const data = {
+        userid: userId,
+        classid: classId,
+        rating: rating,
+        status: 1,
+        created_at: new Date(),
+        updated_at: new Date()
+      }
+
+      classesModel.inserRating(req, data, (err, result) => {
+        cb(err, result)
+      })
+    }
+  ], (errRating, resultRating) => {
+    if (!errRating) {
+      return MiscHelper.responses(res, resultRating)
+    } else {
+      return MiscHelper.responses(res, errRating, 400)
+    }
+  })
+}
+

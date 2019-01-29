@@ -65,7 +65,7 @@ module.exports = {
   },
   insertLike: (conn, data, callback) => {
     conn.getConnection((errConnection, connection) => {
-      if (errConnection) console.log(errConnection)
+      if (errConnection) console.error(errConnection)
 
       connection.query(`INSERT INTO discussion_likes_tab SET ?`, data, (err, rows) => {
         if (err) {
@@ -78,7 +78,7 @@ module.exports = {
   },
   updateLike: (conn, id, data, callback) => {
     conn.getConnection((errConnection, connection) => {
-      if (errConnection) console.log(errConnection)
+      if (errConnection) console.error(errConnection)
 
       connection.query(`UPDATE discussion_likes_tab SET ? WHERE id = ?`, [data, id], (errUpdate, resultUpdate) => {
         callback(errUpdate, resultUpdate.affectedRows > 0 ? _.merge(data, { id: id }) : [])
