@@ -109,6 +109,39 @@ exports.getRec = (req, res) => {
   })
 }
 
+exports.getUserClass = (req, res) => {
+  req.checkParams('userId', 'userId is required').notEmpty().isInt()
+  const key = `get-user-class-${req.params.userId}`
+
+  async.waterfall([
+    (cb) => {
+      redisCache.get(key, userClass => {
+        if (userClass) {
+          return MiscHelper.responses(res, userClass)
+        } else {
+          cb(null)
+        }
+      })
+    },
+    (cb) => {
+      classesModel.getUserClass(req, req.params.userId, (errUserClass, resultUserClass) => {
+        cb(errUserClass, resultUserClass)
+      })
+    },
+    (dataUserClass, cb) => {
+      redisCache.setex(key, 600, dataUserClass)
+      console.log('proccess cached')
+      cb(null, dataUserClass)
+    }
+  ], (errUserClasses, resultUserClasses) => {
+    if (!errUserClasses) {
+      return MiscHelper.responses(res, resultUserClasses)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errUserClasses)
+    }
+  })
+}
+
 exports.rating = (req, res) => {
   req.checkBody('userId', 'userId is required').notEmpty().isInt()
   req.checkBody('classId', 'classId is requires').notEmpty().isInt()
@@ -162,4 +195,3 @@ exports.rating = (req, res) => {
     }
   })
 }
-

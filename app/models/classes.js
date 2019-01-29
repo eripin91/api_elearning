@@ -25,6 +25,15 @@ module.exports = {
       })
     })
   },
+  getUserClass: (conn, userId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+
+      connection.query(`SELECT a.classid, b.userid, a.name, a.cover, c.fullname AS guru, (SELECT COUNT(userid) FROM users_classes_tab WHERE classid=classid AND classid=a.classid GROUP BY classid) AS member, (SELECT COUNT(d.detailid) FROM courses_detail_tab d JOIN courses_tab e ON d.courseid=e.courseid WHERE e.classid=a.classid) AS courses, (SELECT COUNT(f.id) FROM users_course_detail_tab f LEFT JOIN courses_detail_tab g on f.detailid=g.detailid LEFT JOIN courses_tab h on g.courseid=h.courseid WHERE f.userid=b.userid AND h.classid=a.classid) AS courses_done FROM classes_tab a LEFT JOIN users_classes_tab b ON a.classid=b.classid LEFT JOIN guru_tab c ON a.guruid=c.guruid WHERE b.userid = ?`, userId, (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
   checkUserClass: (conn, userId, classId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
@@ -93,10 +102,10 @@ module.exports = {
   },
   updateRating: (conn, id, data, callback) => {
     conn.getConnection((errConnection, connection) => {
-      if (errConnection)  console.error(errConnection)
+      if (errConnection) console.error(errConnection)
 
       connection.query(`UPDATE users_rating_tab SET ? WHERE id = ?`, [data, id], (errUpdate, resultUpdate) => {
-        callback(errUpdate, resultUpdate.affectedRows > 0 ? _.merge(data, { id: id}) : [])
+        callback(errUpdate, resultUpdate.affectedRows > 0 ? _.merge(data, { id: id }) : [])
       })
     })
   }
