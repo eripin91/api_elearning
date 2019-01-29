@@ -29,7 +29,7 @@ exports.get = (req, res) => {
     },
     (cb) => {
       coursesModel.get(req, req.params.idClass, (errCourses, resultCourses) => {
-        // checked if result === undefined 
+        // checked if result === undefined
         if (resultCourses === undefined) {
           let data = { message: 'tidak ada course untuk class ini' }
           cb(null, data)
@@ -49,13 +49,13 @@ exports.get = (req, res) => {
       cb(null, dataCourses)
     }
   ],
-    (errCourses, resultCourses) => {
-      if (!errCourses) {
-        return MiscHelper.responses(res, resultCourses)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errCourses, 400)
-      }
-    })
+  (errCourses, resultCourses) => {
+    if (!errCourses) {
+      return MiscHelper.responses(res, resultCourses)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errCourses, 400)
+    }
+  })
 }
 
 /*
@@ -91,13 +91,13 @@ exports.detail = (req, res) => {
       cb(null, dataDetail)
     }
   ],
-    (errDetail, resultDetail) => {
-      if (!errDetail) {
-        return MiscHelper.responses(res, resultDetail)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errDetail, 400)
-      }
-    })
+  (errDetail, resultDetail) => {
+    if (!errDetail) {
+      return MiscHelper.responses(res, resultDetail)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errDetail, 400)
+    }
+  })
 }
 /*
 * GET : '/detail/idUser/idDetail
@@ -140,13 +140,13 @@ exports.material = (req, res) => {
       cb(null, dataMaterial)
     }
   ],
-    (errMaterial, resultMaterial) => {
-      if (!errMaterial) {
-        return MiscHelper.responses(res, resultMaterial)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errMaterial, 400)
-      }
+  (errMaterial, resultMaterial) => {
+    if (!errMaterial) {
+      return MiscHelper.responses(res, resultMaterial)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errMaterial, 400)
     }
+  }
   )
 }
 
@@ -190,13 +190,13 @@ exports.materialDetail = (req, res) => {
       cb(null, dataMaterialDetail)
     }
   ],
-    (errMaterialDetail, resultMaterialDetail) => {
-      if (!errMaterialDetail) {
-        return MiscHelper.responses(res, resultMaterialDetail)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errMaterialDetail, 400)
-      }
-    })
+  (errMaterialDetail, resultMaterialDetail) => {
+    if (!errMaterialDetail) {
+      return MiscHelper.responses(res, resultMaterialDetail)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errMaterialDetail, 400)
+    }
+  })
 }
 
 /*
@@ -221,7 +221,6 @@ exports.nextMaterial = (req, res) => {
       })
     },
     (cb) => {
-
       const data = [req.params.idDetail, req.params.materialDetailId]
       coursesModel.getNextMaterial(req, data, (errMaterialDetail, resultMaterialDetail) => {
         cb(errMaterialDetail, resultMaterialDetail)
@@ -242,7 +241,6 @@ exports.nextMaterial = (req, res) => {
 }
 
 exports.getUserCourseDetail = (req, res) => {
-  const key = `get-user-course-detail-$:{req.params.detailId}`
   async.waterfall([
     (cb) => {
       coursesModel.getCheckCourseComplete(req, req.params.detailId, (errMaterialDetail, resultMaterialDetail) => {
@@ -257,7 +255,7 @@ exports.getUserCourseDetail = (req, res) => {
     },
     (dataDetail, cb) => {
       coursesModel.checkUserCourseDetail(req, req.params.userId, req.params.detailId, (errCheck, resultCheck) => {
-        if(_.isEmpty(resultCheck) || errCheck) {
+        if (_.isEmpty(resultCheck) || errCheck) {
           cb(errCheck, dataDetail)
         } else {
           return MiscHelper.responses(res, resultCheck)
@@ -288,7 +286,7 @@ exports.getUserCourseDetail = (req, res) => {
         }
         cb(null, data)
       }
-    },
+    }
   ], (errMaterialDetail, resultMaterialDetail) => {
     if (!errMaterialDetail) {
       return MiscHelper.responses(res, resultMaterialDetail)
@@ -296,5 +294,4 @@ exports.getUserCourseDetail = (req, res) => {
       return MiscHelper.errorCustomStatus(res, errMaterialDetail, 400)
     }
   })
-
 }
