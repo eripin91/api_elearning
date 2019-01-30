@@ -14,7 +14,6 @@ module.exports = {
         } else {
           connection.query('SELECT cd.detailid, cd.name, SUM(cm.duration) as durasi FROM courses_detail_tab cd LEFT JOIN courses_material_tab cm ON cd.detailid = cm.detailid WHERE cd.courseid = ? GROUP BY(cd.detailid)', data.courseid, (err, result) => {
             data.course = result
-            console.log(data)
             callback(err, data)
           })
         }
@@ -42,8 +41,8 @@ module.exports = {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
       connection.query('SELECT COUNT(materialid) AS jumlah_materi FROM courses_material_tab WHERE detailid = ?', [detailId], (err, rows) => {
-        let data = rows[0]
         console.log(err)
+        let data = rows[0]
         connection.query('SELECT COUNT(um.id) AS user_materi FROM users_material_progress_tab um LEFT JOIN courses_material_tab cm ON um.materialid = cm.materialid LEFT JOIN users_tab u ON um.userid = u.userid LEFT JOIN courses_detail_tab cd ON cm.detailid = cd.detailid WHERE cd.detailid = ?', detailId, (err, result) => {
           console.log(result[0].user_materi)
           data.user_materi = result[0].user_materi

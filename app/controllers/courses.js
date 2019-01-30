@@ -267,14 +267,14 @@ exports.getUserCourseDetail = (req, res) => {
         const data = {
           userid: req.params.userId,
           detailid: req.params.detailId,
-          is_completed: 1,
+          is_done_watching: 1,
+          is_completed: 0,
           created_at: new Date(),
           updated_at: new Date()
         }
 
         coursesModel.insertMaterialDetail(req, data, (err, result) => {
           const key = `get-user-course-detail-$:{req.params.userId}-$:req.params.detailId`
-          console.log('post')
           redisCache.del(key)
           cb(err, result)
         })
@@ -292,6 +292,43 @@ exports.getUserCourseDetail = (req, res) => {
       return MiscHelper.responses(res, resultMaterialDetail)
     } else {
       return MiscHelper.errorCustomStatus(res, errMaterialDetail, 400)
+    }
+  })
+}
+
+exports.updateUserCourseDetail = (req, res) => {
+  const userId = req.params.userId
+  const detailId = req.params.detailId
+  async.waterfall([
+    (cb) => {
+      coursesModel.checkUserCourseDetail(req, userId, detailId, (errDetail, resultDetail) => {
+        if (_.isEmpty(resultDetail) || errDetail) {
+          cb(errDetail)
+        } else {
+          cb(errDetail, resultDetail)
+        }
+      })
+    },
+    (dataDetail, cb) => {
+      const data = {
+        is_completed: 1,
+        updated_at: new Date()
+      }
+      coursesModel.updateMaterialDetail(req, dataDetail[0].id, data, (errUpdateDetail, resultUpdateDetail) => {
+        const key = `get-user-course-detail-$:{req.params.userId}-$:req.params.detailId`
+        redisCache.del(key)
+        if (errUpdateDetail) {
+          cb(errUpdateDetail)
+        } else {
+          return MiscHelper.responses(res, resultUpdateDetail)
+        }
+      })
+    }
+  ], (errDetail, resultDetail) => {
+    if (!errDetail) {
+      return MiscHelper.responses(res, resultDetail)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errDetail, 400)
     }
   })
 }

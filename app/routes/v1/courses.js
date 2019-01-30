@@ -10,6 +10,7 @@ Route
   .get('/get/:idUser/:idDetail', CoursesControllers.material)
   .get('/material/:materialDetailId', CoursesControllers.materialDetail)
   .get('/detail/:idDetail/material/:materialDetailId', CoursesControllers.nextMaterial)
-  .get('/sabar/:userId/:detailId', CoursesControllers.getUserCourseDetail)
+  .get('/detailcomplete/:userId/:detailId', CoursesControllers.getUserCourseDetail)
+  .patch('/detailcomplete/:userId/:detailId', CoursesControllers.updateUserCourseDetail)
 
 module.exports = Route
