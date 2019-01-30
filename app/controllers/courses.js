@@ -29,12 +29,18 @@ exports.get = (req, res) => {
     },
     (cb) => {
       coursesModel.get(req, req.params.idClass, (errCourses, resultCourses) => {
-        resultCourses.course.map((course) => {
-          let minutes = Math.floor(course.durasi / 60)
-          let second = course.durasi - (minutes * 60)
-          course.durasi = minutes + ':' + second
-        })
-        cb(errCourses, resultCourses)
+        // checked if result === undefined
+        if (resultCourses === undefined) {
+          let data = { message: 'tidak ada course untuk class ini' }
+          cb(null, data)
+        } else {
+          resultCourses.course.map((course) => {
+            let minutes = Math.floor(course.durasi / 60)
+            let second = course.durasi - (minutes * 60)
+            course.durasi = minutes + ':' + second
+          })
+          cb(errCourses, resultCourses)
+        }
       })
     },
     (dataCourses, cb) => {
@@ -94,7 +100,7 @@ exports.detail = (req, res) => {
   })
 }
 /*
-* GET : '/detail/idDetail
+* GET : '/detail/idUser/idDetail
 *
 * @desc Get Material in BAB
 *
@@ -224,6 +230,62 @@ exports.nextMaterial = (req, res) => {
       redisCache.setex(key, 600, dataMaterialDetail)
       console.log('process cached')
       cb(null, dataMaterialDetail)
+    }
+  ], (errMaterialDetail, resultMaterialDetail) => {
+    if (!errMaterialDetail) {
+      return MiscHelper.responses(res, resultMaterialDetail)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errMaterialDetail, 400)
+    }
+  })
+}
+
+exports.getUserCourseDetail = (req, res) => {
+  async.waterfall([
+    (cb) => {
+      coursesModel.getCheckCourseComplete(req, req.params.detailId, (errMaterialDetail, resultMaterialDetail) => {
+        let data = {}
+        if (resultMaterialDetail.jumlah_materi === resultMaterialDetail.user_materi) {
+          data.is_completed = 1
+        } else {
+          data.is_completed = 0
+        }
+        cb(errMaterialDetail, data)
+      })
+    },
+    (dataDetail, cb) => {
+      coursesModel.checkUserCourseDetail(req, req.params.userId, req.params.detailId, (errCheck, resultCheck) => {
+        if (_.isEmpty(resultCheck) || errCheck) {
+          cb(errCheck, dataDetail)
+        } else {
+          return MiscHelper.responses(res, resultCheck)
+        }
+      })
+    },
+    (dataDetail, cb) => {
+      if (dataDetail.is_completed === 1) {
+        const data = {
+          userid: req.params.userId,
+          detailid: req.params.detailId,
+          is_completed: 1,
+          created_at: new Date(),
+          updated_at: new Date()
+        }
+
+        coursesModel.insertMaterialDetail(req, data, (err, result) => {
+          const key = `get-user-course-detail-$:{req.params.userId}-$:req.params.detailId`
+          console.log('post')
+          redisCache.del(key)
+          cb(err, result)
+        })
+      } else {
+        const data = {
+          userid: req.params.userId,
+          detailid: req.params.detailId,
+          is_completed: dataDetail.is_completed
+        }
+        cb(null, data)
+      }
     }
   ], (errMaterialDetail, resultMaterialDetail) => {
     if (!errMaterialDetail) {
