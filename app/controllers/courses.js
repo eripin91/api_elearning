@@ -332,3 +332,21 @@ exports.updateUserCourseDetail = (req, res) => {
     }
   })
 }
+
+// exports.updateUserCourseMaterial = (req, res) => {
+//   async.waterfall([
+//     (cb) => {
+//       coursesModel.checkUserMaterial(req, materialId, (errMateri, resultMateri) => {
+//         if(_.isEmpty(resultMateri) || errMateri) {
+//           cb(errMateri, 1)
+//         } else {
+
+//           cb(errMateri, resultMateri)
+//         }
+//       })
+//     },
+//     (dataMateri, cb) => {
+
+//     }
+//   ])
+// }

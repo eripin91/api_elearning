@@ -14,6 +14,7 @@ module.exports = {
         } else {
           connection.query('SELECT cd.detailid, cd.name, SUM(cm.duration) as durasi FROM courses_detail_tab cd LEFT JOIN courses_material_tab cm ON cd.detailid = cm.detailid WHERE cd.courseid = ? GROUP BY(cd.detailid)', data.courseid, (err, result) => {
             data.course = result
+            console.log(data.course)
             callback(err, data)
           })
         }
@@ -115,7 +116,7 @@ module.exports = {
   },
   getNextMaterial: (conn, data, callback) => {
     conn.getConnection((errConnection, connection) => {
-      if (errConnection) console.log(errConnection)
+      if (errConnection) console.error(errConnection)
       connection.query('SELECT cm.materialid, cd.detailid, cm.name, cm.thumbnails, cm.duration FROM courses_material_tab cm JOIN courses_detail_tab cd ON cm.detailid = cd.detailid WHERE cm.detailid = ? AND cm.materialid > ? LIMIT 3', data, (err, rows) => {
         callback(err, rows)
       })
@@ -123,8 +124,60 @@ module.exports = {
   },
   checkUserCourseDetail: (conn, userId, detailId, callback) => {
     conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
       connection.query('SELECT * FROM users_course_detail_tab WHERE userid = ? AND detailid = ?', [userId, detailId], (err, rows) => {
         callback(err, rows)
+      })
+    })
+  },
+  checkUserMaterial: (conn, materialId, callback) => {
+    conn.gerConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      connection.query('SELECT * FROM users_material_progress_tab WHERE id = ?', materialId, (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  insertUserMaterial: (conn, data, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      connection.query('INSERT INTO users_material_progress_tab SET ?', data, (err, rows) => {
+        if (err) {
+          callback(err)
+        } else {
+          callback(null, _.merge(data, { id: rows.insertId }))
+        }
+      })
+    })
+  },
+  updateUserMaterial: (conn, id, data, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      connection.query('UPDATE users_material_progress_tab SET ? WHERE id = ', [data, id], (err, rows) => {
+        callback(err, rows.affectedRows > 0 ? _.merge(data, { id: id }) : [])
+      })
+    })
+  },
+  checkDetailMaterial: (conn, detailId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      connection.query('SELECT * FROM users_course_detail_tab WHERE id = ', detailId, (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  insertDetailMaterial: (conn, data, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      connection.query('INSERT INTO users_course_detail_tab SET ?', data, (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  updateDetailMaterial: (conn, id, data, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      connection.query('UPDATE users_course_detail_tab SET ? WHERE id = ?', [data, id], (err, rows) => {
+        callback(err, rows.affectedRows > 0 ? _.merge(data, { id: id }) : [])
       })
     })
   }
