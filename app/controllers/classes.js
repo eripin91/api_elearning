@@ -43,7 +43,10 @@ exports.get = (req, res) => {
 
 exports.getDetail = (req, res) => {
   req.checkParams('classId', 'classId is required').notEmpty().isInt()
-  const key = `get-class-detail-${req.params.classId}`
+  req.checkParams('userId', 'userId is required').notEmpty().isInt()
+
+  const key = `get-class-detail-${req.params.classId}-${req.params.userId}`
+
   async.waterfall([
     (cb) => {
       redisCache.get(key, detail => {
@@ -55,13 +58,13 @@ exports.getDetail = (req, res) => {
       })
     },
     (cb) => {
-      classesModel.getDetail(req, req.params.classId, (errDetail, resultDetail) => {
+      classesModel.getDetail(req, req.params.classId, req.params.userId, (errDetail, resultDetail) => {
         cb(errDetail, resultDetail)
       })
     },
     (dataDetail, cb) => {
       redisCache.setex(key, 600, dataDetail)
-      console.log('prosess cached')
+      console.log(`prosess cached ${key}`)
       cb(null, dataDetail)
     }
   ], (errDetails, resultDetails) => {
@@ -153,27 +156,6 @@ exports.rating = (req, res) => {
 
   async.waterfall([
     (cb) => {
-      classesModel.checkRating(req, userId, classId, (errCheck, resultCheck) => {
-        if (_.isEmpty(resultCheck) || (errCheck)) {
-          cb(errCheck)
-        } else {
-          console.log('data ada')
-          const data = {
-            rating: rating,
-            updated_at: new Date()
-          }
-
-          classesModel.updateRating(req, resultCheck[0].id, data, (err, resultUpdateRating) => {
-            if (err) {
-              cb(err)
-            } else {
-              return MiscHelper.responses(res, resultUpdateRating)
-            }
-          })
-        }
-      })
-    },
-    (cb) => {
       const data = {
         userid: userId,
         classid: classId,
@@ -183,8 +165,24 @@ exports.rating = (req, res) => {
         updated_at: new Date()
       }
 
-      classesModel.inserRating(req, data, (err, result) => {
-        cb(err, result)
+      classesModel.inserRating(req, data, () => {
+        cb(null)
+      })
+    },
+    (cb) => {
+      classesModel.getAverageRating(req, classId, (err, avg) => {
+        cb(err, avg)
+      })
+    },
+    (ratingAvg, cb) => {
+      const data = {
+        rating: ratingAvg[0].rating
+      }
+      console.log(data)
+      classesModel.updateRating(req, classId, data, (errUpdate, resultUpdate) => {
+        const key = `get-class-detail-${classId}-${userId}`
+        redisCache.del(key)
+        cb(errUpdate, resultUpdate)
       })
     }
   ], (errRating, resultRating) => {
