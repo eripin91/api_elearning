@@ -16,7 +16,7 @@ const redisCache = require('../libs/RedisCache')
  */
 
 exports.getThread = (req, res) => {
-  const key = 'get-thread-' + req.params.courseId
+  const key = `get-thread-${req.params.courseId}` 
   async.waterfall([
     (cb) => {
       redisCache.get(key, detail => {
@@ -120,8 +120,9 @@ exports.insertThreadTitle = (req, res) => {
   discussionsModel.insertThreadTitle(req, data, (errInsert, resultInsert) => {
     if (!errInsert) {
       // delete redis thread by course
-      const key = 'get-thread-' + req.params.courseId
+      const key = `get-thread-${req.params.courseId}`
       redisCache.del(key)
+      console.log(`${key} is deleted`)
       return MiscHelper.responses(res, resultInsert)
     } else {
       return MiscHelper.errorCustomStatus(res, errInsert, 400)
