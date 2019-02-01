@@ -49,13 +49,13 @@ exports.get = (req, res) => {
       cb(null, dataCourses)
     }
   ],
-  (errCourses, resultCourses) => {
-    if (!errCourses) {
-      return MiscHelper.responses(res, resultCourses)
-    } else {
-      return MiscHelper.errorCustomStatus(res, errCourses, 400)
-    }
-  })
+    (errCourses, resultCourses) => {
+      if (!errCourses) {
+        return MiscHelper.responses(res, resultCourses)
+      } else {
+        return MiscHelper.errorCustomStatus(res, errCourses, 400)
+      }
+    })
 }
 
 /*
@@ -91,13 +91,13 @@ exports.detail = (req, res) => {
       cb(null, dataDetail)
     }
   ],
-  (errDetail, resultDetail) => {
-    if (!errDetail) {
-      return MiscHelper.responses(res, resultDetail)
-    } else {
-      return MiscHelper.errorCustomStatus(res, errDetail, 400)
-    }
-  })
+    (errDetail, resultDetail) => {
+      if (!errDetail) {
+        return MiscHelper.responses(res, resultDetail)
+      } else {
+        return MiscHelper.errorCustomStatus(res, errDetail, 400)
+      }
+    })
 }
 /*
 * GET : '/detail/idUser/idDetail
@@ -140,13 +140,13 @@ exports.material = (req, res) => {
       cb(null, dataMaterial)
     }
   ],
-  (errMaterial, resultMaterial) => {
-    if (!errMaterial) {
-      return MiscHelper.responses(res, resultMaterial)
-    } else {
-      return MiscHelper.errorCustomStatus(res, errMaterial, 400)
+    (errMaterial, resultMaterial) => {
+      if (!errMaterial) {
+        return MiscHelper.responses(res, resultMaterial)
+      } else {
+        return MiscHelper.errorCustomStatus(res, errMaterial, 400)
+      }
     }
-  }
   )
 }
 
@@ -190,13 +190,13 @@ exports.materialDetail = (req, res) => {
       cb(null, dataMaterialDetail)
     }
   ],
-  (errMaterialDetail, resultMaterialDetail) => {
-    if (!errMaterialDetail) {
-      return MiscHelper.responses(res, resultMaterialDetail)
-    } else {
-      return MiscHelper.errorCustomStatus(res, errMaterialDetail, 400)
-    }
-  })
+    (errMaterialDetail, resultMaterialDetail) => {
+      if (!errMaterialDetail) {
+        return MiscHelper.responses(res, resultMaterialDetail)
+      } else {
+        return MiscHelper.errorCustomStatus(res, errMaterialDetail, 400)
+      }
+    })
 }
 
 /*
@@ -254,7 +254,7 @@ exports.getUserCourseDetail = (req, res) => {
       })
     },
     (dataDetail, cb) => {
-      coursesModel.checkUserCourseDetail(req, req.params.userId, req.params.detailId, (errCheck, resultCheck) => {
+      coursesModel.checkUserCourseDetail(req, req.params.materialId, (errCheck, resultCheck) => {
         if (_.isEmpty(resultCheck) || errCheck) {
           cb(errCheck, dataDetail)
         } else {
@@ -333,20 +333,115 @@ exports.updateUserCourseDetail = (req, res) => {
   })
 }
 
-// exports.updateUserCourseMaterial = (req, res) => {
-//   async.waterfall([
-//     (cb) => {
-//       coursesModel.checkUserMaterial(req, materialId, (errMateri, resultMateri) => {
-//         if(_.isEmpty(resultMateri) || errMateri) {
-//           cb(errMateri, 1)
-//         } else {
+exports.updateUserCourseMaterial = (req, res) => {
+  async.waterfall([
+    (cb) => {
+      coursesModel.checkUserMaterial(req, req.params.materialId, (errMateri, resultMateri) => {
+        
+        if (_.isEmpty(resultMateri) || errMateri) {
+        //jika data tidak ada
+          cb(errMateri, 1)
+        } else {
+        // jika data ada  
+          const data = {
+            updated_at: new Date()
+          }
+          console.log('ini result materi')
+          console.log(resultMateri[0])
+          if (req.body.is_downloaded === undefined) {
+            Object.assign(data, { is_done_watching: req.body.is_done_watching })
+          } else if (req.body.is_done_watching === undefined) {
+            Object.assign(data, { is_downloaded: req.body.is_downloaded })
+          }
+          coursesModel.updateUserMaterial(req, resultMateri[0].id, data, (err, result) => {
+            if (err) {
+              cb(err)
+            } else {
+              cb(err, result)
+            }
+          })
+        }
+      })
+    },
+    (dataMateri, cb) => {
+      // jika data tidak ada
+      if (dataMateri === 1) {
+        const data = {
+          userid: userId,
+          materialid: materialId,
+          watchingduration: 0,
+          is_done_watching: 0,
+          is_downloaded: 0,
+          status: 1,
+          created_at: new Date(),
+          updated_at: new Date()
+        }
+        if (req.body.is_downloaded === undefined) {
+          data.is_done_watching = req.body.is_done_watching
+        } else if (req.body.is_done_watching === undefined) {
+          data.is_downloaded = req.body.is_downloaded
+        }
 
-//           cb(errMateri, resultMateri)
-//         }
-//       })
-//     },
-//     (dataMateri, cb) => {
+        coursesModel.insertUserMaterial(req, data, (err, result) => {
+          const key = `get-material-user-$:{req.params.userId}`
+          redisCache.del(key)
+          cb(err, result)
+        })
+      } else {
+        // jika data ada dia hanya mengirimkan hasil dari function sebelumnya
+        cb(null, dataMateri)
+      }
+    },
+    (dataMateri, cb) => {
+      if (dataMateri.is_done_watching === 1) {
+        coursesModel.checkCourseComplete(req, res.params.detailId, (errDetail, resultDetail) => {
+          let data = {}
+          if (resultDetail.jumlah_materi === resultDetail.user_materi) {
+            data.is_completed = 1
+          } else {
+            data.is_completed = 0
+          }
+          cb(errDetail, data)
+        })
+      } else if(dataMateri.is_done_watching === 0){
+        cb(null, 1)
+      } else {
 
-//     }
-//   ])
-// }
+      }
+    },
+    (dataMateri, cb) => {
+      if (dataMateri.is_completed === 1) {
+        coursesModel.checkUserCourseDetail(req, req.params.userId, req.params.detailId, (err, result) => {
+          if (_.isEmpty(result) || err) {
+            const data = {
+              userid: req.params.userId,
+              detailId: req.params.detailId,
+              is_completed: 1,
+              created_at: new Date(),
+              updated_at: new Date()
+            }
+
+            coursesModel.insertDetailMaterial(res, data, (err, result) => {
+              const key = `get-user-course-detail-$:{req.params.userId}-$:{req.params.detailId}`
+              redisCache.del(key)
+              cb(err, result)
+            })
+          }
+        })
+      } else if (dataMateri.is_completed === 0) {
+        const data = {
+          userid: req.params.userId,
+          detailid: req.params.detailId,
+          is_completed: dataDetail.is_completed
+        }
+        return MiscHelper.responses(res, data)
+      }
+    }
+  ], (errDetail, resultDetail) => {
+    if(!errDetail) {
+      return MiscHelper.responses(res, resultDetail)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errDetail, 400)
+    }
+  })
+}

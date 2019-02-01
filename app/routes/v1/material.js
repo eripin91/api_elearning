@@ -6,6 +6,6 @@ var Route = express.Router()
 
 Route
   .get('/user/:userId', MaterialControllers.get)
-  .post('', MaterialControllers.update)
+  .post('/:userId/:detailId/:materialId', MaterialControllers.update)
 
 module.exports = Route

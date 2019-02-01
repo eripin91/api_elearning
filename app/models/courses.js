@@ -44,8 +44,7 @@ module.exports = {
       connection.query('SELECT COUNT(materialid) AS jumlah_materi FROM courses_material_tab WHERE detailid = ?', [detailId], (err, rows) => {
         console.log(err)
         let data = rows[0]
-        connection.query('SELECT COUNT(um.id) AS user_materi FROM users_material_progress_tab um LEFT JOIN courses_material_tab cm ON um.materialid = cm.materialid LEFT JOIN users_tab u ON um.userid = u.userid LEFT JOIN courses_detail_tab cd ON cm.detailid = cd.detailid WHERE cd.detailid = ?', detailId, (err, result) => {
-          console.log(result[0].user_materi)
+        connection.query('SELECT COUNT(um.id) AS user_materi FROM users_material_progress_tab um LEFT JOIN courses_material_tab cm ON um.materialid = cm.materialid LEFT JOIN users_tab u ON um.userid = u.userid LEFT JOIN courses_detail_tab cd ON cm.detailid = cd.detailid WHERE cd.detailid = ? AND um.is_done_watching = 1', detailId, (err, result) => {
           data.user_materi = result[0].user_materi
           callback(err, data)
         })
@@ -131,9 +130,10 @@ module.exports = {
     })
   },
   checkUserMaterial: (conn, materialId, callback) => {
-    conn.gerConnection((errConnection, connection) => {
+    console.log(materialId)
+    conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query('SELECT * FROM users_material_progress_tab WHERE id = ?', materialId, (err, rows) => {
+      connection.query('SELECT * FROM users_material_progress_tab WHERE id = '+ materialId, (err, rows) => {
         callback(err, rows)
       })
     })
@@ -151,9 +151,11 @@ module.exports = {
     })
   },
   updateUserMaterial: (conn, id, data, callback) => {
+    console.log(data) 
+    console.log(id)
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query('UPDATE users_material_progress_tab SET ? WHERE id = ', [data, id], (err, rows) => {
+      connection.query('UPDATE users_material_progress_tab SET ? WHERE id = ?', [data, id], (err, rows) => {
         callback(err, rows.affectedRows > 0 ? _.merge(data, { id: id }) : [])
       })
     })
@@ -161,7 +163,7 @@ module.exports = {
   checkDetailMaterial: (conn, detailId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query('SELECT * FROM users_course_detail_tab WHERE id = ', detailId, (err, rows) => {
+      connection.query('SELECT * FROM users_course_detail_tab WHERE detailId = ?', detailId, (err, rows) => {
         callback(err, rows)
       })
     })
