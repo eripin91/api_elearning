@@ -34,10 +34,10 @@ module.exports = {
       })
     })
   },
-  checkUserClass: (conn, userId, classId, callback) => {
+  checkDetailClass: (conn, classId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT * FROM users_classes_tab WHERE userid = ? AND classid = ? LIMIT 1`, [userId, classId], (err, rows) => {
+      connection.query(`SELECT * FROM classes_tab WHERE classid = ? LIMIT 1`, classId, (err, rows) => {
         callback(err, rows)
       })
     })
@@ -117,5 +117,5 @@ module.exports = {
         callback(err, rows)
       })
     })
-  }
+  },
 }

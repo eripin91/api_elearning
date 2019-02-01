@@ -1,7 +1,7 @@
 'use strict'
 
 module.exports = {
-  get: (conn, data, callback) => {
+  insert: (conn, data, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
 
@@ -9,7 +9,7 @@ module.exports = {
         if (err) {
           callback(err)
         } else {
-          callback(null, _.merge(data, { id: rows.insertId }))
+          callback(null, _.merge(data, { notificationid: rows.insertId }))
         }
       })
     })
