@@ -9,7 +9,7 @@ module.exports = {
         if (err) {
           callback(err)
         } else {
-          callback(null, _.merge(data, { id: rows.insertId}))
+          callback(null, _.merge(data, { id: rows.insertId }))
         }
       })
     })
