@@ -208,7 +208,7 @@ exports.insertUserClass = (req, res) => {
         userid: userId,
         classid: classId,
         score: 0,
-        is_done:0,
+        is_done: 0,
         certificate: '',
         status: 1,
         created_at: new Date(),
@@ -217,7 +217,7 @@ exports.insertUserClass = (req, res) => {
 
       classesModel.insertUserClass(req, data, (err) => {
         if (err) {
-          return MiscHelper.errorCustomStatus(res, errRating, 400)
+          return MiscHelper.errorCustomStatus(res, err, 400)
         } else {
           cb(null)
         }
@@ -243,8 +243,10 @@ exports.insertUserClass = (req, res) => {
       })
     }
   ], (errInsertClass, resultInserClass) => {
-    if (!err) {
+    if (!errInsertClass) {
       return MiscHelper.responses(res, resultInserClass)
+    } else {
+      return MiscHelper.err
     }
   })
 }
