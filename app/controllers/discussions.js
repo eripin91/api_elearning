@@ -16,7 +16,7 @@ const redisCache = require('../libs/RedisCache')
  */
 
 exports.getThread = (req, res) => {
-  const key = `get-thread-${req.params.courseId}` 
+  const key = `get-thread-${req.params.courseId}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, detail => {

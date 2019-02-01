@@ -111,7 +111,7 @@ module.exports = {
   },
   getAverageRating: (conn, classId, callback) => {
     conn.getConnection((errConnection, connection) => {
-      if(errConnection) console.error(errConnection)
+      if (errConnection) console.error(errConnection)
 
       connection.query(`SELECT AVG(rating) AS rating FROM users_rating_tab WHERE status=1 AND classid = ?`, classId, (err, rows) => {
         callback(err, rows)
