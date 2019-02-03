@@ -8,7 +8,7 @@ module.exports = {
       connection.query(`SELECT a.discussionid, b.fullname AS threadstarter, 
                         a.post_content AS question, a.created_at, a.updated_at, 
                         (SELECT COUNT(discussionid) FROM discussion_tab WHERE parent=a.discussionid 
-                        ORDER BY parent) AS total_replied, (SELECT COUNT(id) FROM discussion_likes_tab WHERE discussionid=a.discussionid AND status=1 ORDER BY discussionid) AS total_like FROM discussion_tab a LEFT JOIN users_tab b ON a.userid=b.userid WHERE parent = 0 AND courseid = ?`, [courseId, courseId], (err, rows) => {
+                        ORDER BY parent) AS total_replied, (SELECT COUNT(id) FROM discussion_likes_tab WHERE discussionid=a.discussionid AND status=1 ORDER BY discussionid) AS total_like FROM discussion_tab a LEFT JOIN users_tab b ON a.userid=b.userid WHERE a.parent = 0 AND a.courseid = ?`, [courseId, courseId], (err, rows) => {
         callback(err, rows)
       })
     })
@@ -65,7 +65,7 @@ module.exports = {
   },
   insertLike: (conn, data, callback) => {
     conn.getConnection((errConnection, connection) => {
-      if (errConnection) console.log(errConnection)
+      if (errConnection) console.error(errConnection)
 
       connection.query(`INSERT INTO discussion_likes_tab SET ?`, data, (err, rows) => {
         if (err) {
@@ -78,7 +78,7 @@ module.exports = {
   },
   updateLike: (conn, id, data, callback) => {
     conn.getConnection((errConnection, connection) => {
-      if (errConnection) console.log(errConnection)
+      if (errConnection) console.error(errConnection)
 
       connection.query(`UPDATE discussion_likes_tab SET ? WHERE id = ?`, [data, id], (errUpdate, resultUpdate) => {
         callback(errUpdate, resultUpdate.affectedRows > 0 ? _.merge(data, { id: id }) : [])
