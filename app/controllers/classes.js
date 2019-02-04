@@ -2,6 +2,7 @@
 
 const async = require('async')
 const classesModel = require('../models/classes')
+const notificationsModel = require('../models/notifications')
 const redisCache = require('../libs/RedisCache')
 
 exports.get = (req, res) => {
@@ -43,7 +44,10 @@ exports.get = (req, res) => {
 
 exports.getDetail = (req, res) => {
   req.checkParams('classId', 'classId is required').notEmpty().isInt()
-  const key = `get-class-detail-${req.params.classId}`
+  req.checkParams('userId', 'userId is required').notEmpty().isInt()
+
+  const key = `get-class-detail-${req.params.classId}-${req.params.userId}`
+
   async.waterfall([
     (cb) => {
       redisCache.get(key, detail => {
@@ -55,13 +59,13 @@ exports.getDetail = (req, res) => {
       })
     },
     (cb) => {
-      classesModel.getDetail(req, req.params.classId, (errDetail, resultDetail) => {
+      classesModel.getDetail(req, req.params.classId, req.params.userId, (errDetail, resultDetail) => {
         cb(errDetail, resultDetail)
       })
     },
     (dataDetail, cb) => {
       redisCache.setex(key, 600, dataDetail)
-      console.log('prosess cached')
+      console.log(`prosess cached ${key}`)
       cb(null, dataDetail)
     }
   ], (errDetails, resultDetails) => {
@@ -153,27 +157,6 @@ exports.rating = (req, res) => {
 
   async.waterfall([
     (cb) => {
-      classesModel.checkRating(req, userId, classId, (errCheck, resultCheck) => {
-        if (_.isEmpty(resultCheck) || (errCheck)) {
-          cb(errCheck)
-        } else {
-          console.log('data ada')
-          const data = {
-            rating: rating,
-            updated_at: new Date()
-          }
-
-          classesModel.updateRating(req, resultCheck[0].id, data, (err, resultUpdateRating) => {
-            if (err) {
-              cb(err)
-            } else {
-              return MiscHelper.responses(res, resultUpdateRating)
-            }
-          })
-        }
-      })
-    },
-    (cb) => {
       const data = {
         userid: userId,
         classid: classId,
@@ -183,15 +166,87 @@ exports.rating = (req, res) => {
         updated_at: new Date()
       }
 
-      classesModel.inserRating(req, data, (err, result) => {
-        cb(err, result)
+      classesModel.inserRating(req, data, () => {
+        cb(null)
+      })
+    },
+    (cb) => {
+      classesModel.getAverageRating(req, classId, (err, avg) => {
+        cb(err, avg)
+      })
+    },
+    (ratingAvg, cb) => {
+      const data = {
+        rating: ratingAvg[0].rating
+      }
+      console.log(data)
+      classesModel.updateRating(req, classId, data, (errUpdate, resultUpdate) => {
+        const key = `get-class-detail-${classId}-${userId}`
+        redisCache.del(key)
+        cb(errUpdate, resultUpdate)
       })
     }
   ], (errRating, resultRating) => {
     if (!errRating) {
       return MiscHelper.responses(res, resultRating)
     } else {
-      return MiscHelper.responses(res, errRating, 400)
+      return MiscHelper.errorCustomStatus(res, errRating, 400)
+    }
+  })
+}
+
+exports.insertUserClass = (req, res) => {
+  req.checkBody('userId', 'userId is required').notEmpty().isInt()
+  req.checkBody('classId', 'classId is requires').notEmpty().isInt()
+
+  const userId = req.body.userId
+  const classId = req.body.classId
+
+  async.waterfall([
+    (cb) => {
+      const data = {
+        userid: userId,
+        classid: classId,
+        score: 0,
+        is_done: 0,
+        certificate: '',
+        status: 1,
+        created_at: new Date(),
+        updated_at: new Date()
+      }
+
+      classesModel.insertUserClass(req, data, (err) => {
+        if (err) {
+          return MiscHelper.errorCustomStatus(res, err, 400)
+        } else {
+          cb(null)
+        }
+      })
+    },
+    (cb) => {
+      classesModel.checkDetailClass(req, classId, (errDetail, resultDetail) => {
+        cb(errDetail, resultDetail)
+      })
+    },
+    (dataDetail, cb) => {
+      const message = `Selamat Anda Telah Bergabung di Kelas ${dataDetail[0].name}`
+      const data = {
+        userid: userId,
+        message: message,
+        status: 1,
+        created_at: new Date(),
+        updated_at: new Date()
+      }
+
+      notificationsModel.insert(req, data, (errInsert, resultInsert) => {
+        cb(errInsert, resultInsert)
+      })
+    }
+  ], (errInsertClass, resultInserClass) => {
+    if (!errInsertClass) {
+      return MiscHelper.responses(res, resultInserClass)
+    } else {
+      return MiscHelper.err
     }
   })
 }
