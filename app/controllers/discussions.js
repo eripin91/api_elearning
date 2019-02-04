@@ -16,7 +16,7 @@ const redisCache = require('../libs/RedisCache')
  */
 
 exports.getThread = (req, res) => {
-  const key = `get-thread-${req.params.courseId}`
+  const key = `get-thread-${req.params.courseId}-${req.params.userId}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, detail => {
@@ -28,7 +28,7 @@ exports.getThread = (req, res) => {
       })
     },
     (cb) => {
-      discussionsModel.getThread(req, req.params.courseId, (errThread, resultThread) => {
+      discussionsModel.getThread(req, req.params.userId, req.params.courseId, (errThread, resultThread) => {
         cb(errThread, resultThread)
       })
     },
@@ -70,7 +70,7 @@ exports.getThreadDetail = (req, res) => {
       })
     },
     (cb) => {
-      discussionsModel.getThreadDetail(req, req.params.discussionId, req.query.sortBy, req.query.orderBy, (errThreadDetail, resultThreadDetail) => {
+      discussionsModel.getThreadDetail(req, req.params.discussionId, req.params.userId, req.query.sortBy, req.query.orderBy, (errThreadDetail, resultThreadDetail) => {
         cb(errThreadDetail, resultThreadDetail)
       })
     },
@@ -120,7 +120,7 @@ exports.insertThreadTitle = (req, res) => {
   discussionsModel.insertThreadTitle(req, data, (errInsert, resultInsert) => {
     if (!errInsert) {
       // delete redis thread by course
-      const key = `get-thread-${req.params.courseId}`
+      const key = `get-thread-${req.body.courseId}-${req.body.userId}`
       redisCache.del(key)
       console.log(`${key} is deleted`)
       return MiscHelper.responses(res, resultInsert)
@@ -161,7 +161,7 @@ exports.insertThreadContent = (req, res) => {
   discussionsModel.insertThreadContent(req, data, (errInsert, resultInsert) => {
     if (!errInsert) {
       // delete redis thread detail order by like desc
-      const key = 'get-thread-detail' + req.params.parentId + '-total_like-desc'
+      const key = 'get-thread-detail' + req.body.parentId + '-total_like-desc'
       redisCache.del(key)
       return MiscHelper.responses(res, resultInsert)
     } else {

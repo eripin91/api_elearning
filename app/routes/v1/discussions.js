@@ -5,8 +5,8 @@
 var Route = express.Router()
 
 Route
-  .get('/get/:courseId', DiscussionsControllers.getThread)
-  .get('/detail/:discussionId', DiscussionsControllers.getThreadDetail)
+  .get('/get/:courseId/:userId', DiscussionsControllers.getThread)
+  .get('/detail/:discussionId/:userId', DiscussionsControllers.getThreadDetail)
   .put('/', DiscussionsControllers.insertThreadTitle)
   .put('/reply', DiscussionsControllers.insertThreadContent)
   .post('/like', DiscussionsControllers.like)
