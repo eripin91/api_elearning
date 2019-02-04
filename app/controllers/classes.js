@@ -2,6 +2,7 @@
 
 const async = require('async')
 const classesModel = require('../models/classes')
+const notificationsModel = require('../models/notifications')
 const redisCache = require('../libs/RedisCache')
 
 exports.get = (req, res) => {
@@ -189,7 +190,63 @@ exports.rating = (req, res) => {
     if (!errRating) {
       return MiscHelper.responses(res, resultRating)
     } else {
-      return MiscHelper.responses(res, errRating, 400)
+      return MiscHelper.errorCustomStatus(res, errRating, 400)
+    }
+  })
+}
+
+exports.insertUserClass = (req, res) => {
+  req.checkBody('userId', 'userId is required').notEmpty().isInt()
+  req.checkBody('classId', 'classId is requires').notEmpty().isInt()
+
+  const userId = req.body.userId
+  const classId = req.body.classId
+
+  async.waterfall([
+    (cb) => {
+      const data = {
+        userid: userId,
+        classid: classId,
+        score: 0,
+        is_done: 0,
+        certificate: '',
+        status: 1,
+        created_at: new Date(),
+        updated_at: new Date()
+      }
+
+      classesModel.insertUserClass(req, data, (err) => {
+        if (err) {
+          return MiscHelper.errorCustomStatus(res, err, 400)
+        } else {
+          cb(null)
+        }
+      })
+    },
+    (cb) => {
+      classesModel.checkDetailClass(req, classId, (errDetail, resultDetail) => {
+        cb(errDetail, resultDetail)
+      })
+    },
+    (dataDetail, cb) => {
+      const message = `Selamat Anda Telah Bergabung di Kelas ${dataDetail[0].name}`
+      const data = {
+        userid: userId,
+        message: message,
+        status: 1,
+        created_at: new Date(),
+        updated_at: new Date()
+      }
+
+      notificationsModel.insert(req, data, (errInsert, resultInsert) => {
+        cb(errInsert, resultInsert)
+      })
+    }
+  ], (errInsertClass, resultInserClass) => {
+    if (!errInsertClass) {
+      return MiscHelper.responses(res, resultInserClass)
+    } else {
+      return MiscHelper.err
     }
   })
 }
