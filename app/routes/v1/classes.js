@@ -10,5 +10,6 @@ Route
   .get('/recs', ClassesControllers.getRec)
   .get('/user/:userId', ClassesControllers.getUserClass)
   .post('/rating', ClassesControllers.rating)
+  .post('/add', ClassesControllers.insertUserClass)
 
 module.exports = Route
