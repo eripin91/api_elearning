@@ -71,7 +71,7 @@ exports.getDetail = (req, res) => {
           resultDetail.map((detail) => {
             detail.is_join = 1
           })
-          cb(errDetail, resultDetail[0]) 
+          cb(errDetail, resultDetail[0])
         }
       })
     },
