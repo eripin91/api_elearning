@@ -60,7 +60,19 @@ exports.getDetail = (req, res) => {
     },
     (cb) => {
       classesModel.getDetail(req, req.params.classId, req.params.userId, (errDetail, resultDetail) => {
-        cb(errDetail, resultDetail)
+        if (resultDetail.length === 0) {
+          classesModel.getDetailClass(req, req.params.classId, (errData, resultData) => {
+            resultData.map((detail) => {
+              detail.is_join = 0
+            })
+            cb(errData, resultData[0])
+          })
+        } else {
+          resultDetail.map((detail) => {
+            detail.is_join = 1
+          })
+          cb(errDetail, resultDetail[0]) 
+        }
       })
     },
     (dataDetail, cb) => {
@@ -239,6 +251,9 @@ exports.insertUserClass = (req, res) => {
       }
 
       notificationsModel.insert(req, data, (errInsert, resultInsert) => {
+        // delete redis user detail
+        const key = `get-user-class-${userId}`
+        redisCache.del(key)
         cb(errInsert, resultInsert)
       })
     }
@@ -246,7 +261,7 @@ exports.insertUserClass = (req, res) => {
     if (!errInsertClass) {
       return MiscHelper.responses(res, resultInserClass)
     } else {
-      return MiscHelper.err
+      return MiscHelper.errorCustomStatus(res, errInsertClass)
     }
   })
 }
