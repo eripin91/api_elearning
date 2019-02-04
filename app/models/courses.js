@@ -133,7 +133,7 @@ module.exports = {
     console.log(materialId)
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query('SELECT * FROM users_material_progress_tab WHERE id = '+ materialId, (err, rows) => {
+      connection.query('SELECT * FROM users_material_progress_tab WHERE id = ' + materialId, (err, rows) => {
         callback(err, rows)
       })
     })
@@ -151,7 +151,7 @@ module.exports = {
     })
   },
   updateUserMaterial: (conn, id, data, callback) => {
-    console.log(data) 
+    console.log(data)
     console.log(id)
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
@@ -178,10 +178,36 @@ module.exports = {
   },
   updateDetailMaterial: (conn, id, data, callback) => {
     conn.getConnection((errConnection, connection) => {
+      if(errConnection) console.error(errConnection)
       connection.query('UPDATE users_course_detail_tab SET ? WHERE id = ?', [data, id], (err, rows) => {
         callback(err, rows.affectedRows > 0 ? _.merge(data, { id: id }) : [])
       })
     })
+  },
+  checkUserClass: (conn, classId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if(errConnection) console.error(errConnection) 
+      connection.query('SELECT * FROM users_classes_tab WHERE classid = ?', classId, (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  checkUserClassProgress: (conn, classId, userId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if(errConnection) console.error(errConnection)
+      connection.query('SELECT a.courseid, (SELECT COUNT(cd.detailid) FROM courses_tab c JOIN courses_detail_tab cd ON c.courseid = cd.courseid WHERE c.courseid=a.courseid) AS jumlah_total FROM classes_tab ct LEFT JOIN courses_tab a on ct.classid = a.classid WHERE a.classid = ?', classId, (err, result) => {
+        console.log(result[0])
+        console.log(result[0].courseid)
+
+        let data = result[0]
+        connection.query('SELECT COUNT(id) as user_progress FROM users_course_detail_tab ud left JOIN courses_detail_tab cd ON cd.detailid = ud.detailid LEFT JOIN users_tab u ON u.userid = ud.userid WHERE cd.courseid = 1 AND u.userid = 1 ', [result[0].courseid, userId], (err, rows) => {
+          data.user_progress = rows[0].user_progress
+          console.log(data)
+          callback(err, data)
+        })  
+      })
+    })
   }
+
 
 }

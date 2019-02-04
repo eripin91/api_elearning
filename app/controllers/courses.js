@@ -49,13 +49,13 @@ exports.get = (req, res) => {
       cb(null, dataCourses)
     }
   ],
-    (errCourses, resultCourses) => {
-      if (!errCourses) {
-        return MiscHelper.responses(res, resultCourses)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errCourses, 400)
-      }
-    })
+  (errCourses, resultCourses) => {
+    if (!errCourses) {
+      return MiscHelper.responses(res, resultCourses)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errCourses, 400)
+    }
+  })
 }
 
 /*
@@ -91,13 +91,13 @@ exports.detail = (req, res) => {
       cb(null, dataDetail)
     }
   ],
-    (errDetail, resultDetail) => {
-      if (!errDetail) {
-        return MiscHelper.responses(res, resultDetail)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errDetail, 400)
-      }
-    })
+  (errDetail, resultDetail) => {
+    if (!errDetail) {
+      return MiscHelper.responses(res, resultDetail)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errDetail, 400)
+    }
+  })
 }
 /*
 * GET : '/detail/idUser/idDetail
@@ -140,13 +140,13 @@ exports.material = (req, res) => {
       cb(null, dataMaterial)
     }
   ],
-    (errMaterial, resultMaterial) => {
-      if (!errMaterial) {
-        return MiscHelper.responses(res, resultMaterial)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errMaterial, 400)
-      }
+  (errMaterial, resultMaterial) => {
+    if (!errMaterial) {
+      return MiscHelper.responses(res, resultMaterial)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errMaterial, 400)
     }
+  }
   )
 }
 
@@ -190,13 +190,13 @@ exports.materialDetail = (req, res) => {
       cb(null, dataMaterialDetail)
     }
   ],
-    (errMaterialDetail, resultMaterialDetail) => {
-      if (!errMaterialDetail) {
-        return MiscHelper.responses(res, resultMaterialDetail)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errMaterialDetail, 400)
-      }
-    })
+  (errMaterialDetail, resultMaterialDetail) => {
+    if (!errMaterialDetail) {
+      return MiscHelper.responses(res, resultMaterialDetail)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errMaterialDetail, 400)
+    }
+  })
 }
 
 /*
@@ -337,12 +337,11 @@ exports.updateUserCourseMaterial = (req, res) => {
   async.waterfall([
     (cb) => {
       coursesModel.checkUserMaterial(req, req.params.materialId, (errMateri, resultMateri) => {
-        
         if (_.isEmpty(resultMateri) || errMateri) {
-        //jika data tidak ada
+        // jika data tidak ada
           cb(errMateri, 1)
         } else {
-        // jika data ada  
+        // jika data ada
           const data = {
             updated_at: new Date()
           }
@@ -365,32 +364,32 @@ exports.updateUserCourseMaterial = (req, res) => {
     },
     (dataMateri, cb) => {
       // jika data tidak ada
-      if (dataMateri === 1) {
-        const data = {
-          userid: userId,
-          materialid: materialId,
-          watchingduration: 0,
-          is_done_watching: 0,
-          is_downloaded: 0,
-          status: 1,
-          created_at: new Date(),
-          updated_at: new Date()
-        }
-        if (req.body.is_downloaded === undefined) {
-          data.is_done_watching = req.body.is_done_watching
-        } else if (req.body.is_done_watching === undefined) {
-          data.is_downloaded = req.body.is_downloaded
-        }
+      // if (dataMateri === 1) {
+      //   const data = {
+      //     userid: userId,
+      //     materialid: materialId,
+      //     watchingduration: 0,
+      //     is_done_watching: 0,
+      //     is_downloaded: 0,
+      //     status: 1,
+      //     created_at: new Date(),
+      //     updated_at: new Date()
+      //   }
+      //   if (req.body.is_downloaded === undefined) {
+      //     data.is_done_watching = req.body.is_done_watching
+      //   } else if (req.body.is_done_watching === undefined) {
+      //     data.is_downloaded = req.body.is_downloaded
+      //   }
 
-        coursesModel.insertUserMaterial(req, data, (err, result) => {
-          const key = `get-material-user-$:{req.params.userId}`
-          redisCache.del(key)
-          cb(err, result)
-        })
-      } else {
-        // jika data ada dia hanya mengirimkan hasil dari function sebelumnya
-        cb(null, dataMateri)
-      }
+      //   coursesModel.insertUserMaterial(req, data, (err, result) => {
+      //     const key = `get-material-user-$:{req.params.userId}`
+      //     redisCache.del(key)
+      //     cb(err, result)
+      //   })
+      // } else {
+      // jika data ada dia hanya mengirimkan hasil dari function sebelumnya
+      cb(null, dataMateri)
+      // }
     },
     (dataMateri, cb) => {
       if (dataMateri.is_done_watching === 1) {
@@ -403,7 +402,7 @@ exports.updateUserCourseMaterial = (req, res) => {
           }
           cb(errDetail, data)
         })
-      } else if(dataMateri.is_done_watching === 0){
+      } else if (dataMateri.is_done_watching === 0) {
         cb(null, 1)
       } else {
 
@@ -432,13 +431,13 @@ exports.updateUserCourseMaterial = (req, res) => {
         const data = {
           userid: req.params.userId,
           detailid: req.params.detailId,
-          is_completed: dataDetail.is_completed
+          is_completed: dataMateri.is_completed
         }
         return MiscHelper.responses(res, data)
       }
     }
   ], (errDetail, resultDetail) => {
-    if(!errDetail) {
+    if (!errDetail) {
       return MiscHelper.responses(res, resultDetail)
     } else {
       return MiscHelper.errorCustomStatus(res, errDetail, 400)

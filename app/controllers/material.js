@@ -30,7 +30,6 @@ exports.get = (req, res) => {
       })
     },
     (cb) => {
-
       materialModel.getUserMaterial(req, req.params.userId, (errMaterial, resultMaterial) => {
         resultMaterial.map((result) => {
           let minutes = Math.floor(result.duration / 60)
@@ -67,6 +66,9 @@ exports.update = (req, res) => {
   const materialId = req.params.materialId
   async.waterfall([
     (cb) => {
+      courseModel.checkUserClassProgress(req, req.params.classId, userId, (err, result) => {
+        console.log('result adalah '+result)
+      })
       materialModel.checkUserMaterialAlreadyExist(req, userId, materialId, (errCheck, resultCheck) => {
         if (_.isEmpty(resultCheck) || errCheck) {
           console.log(1)
@@ -84,6 +86,7 @@ exports.update = (req, res) => {
           materialModel.updateUserMaterial(req, resultCheck[0].id, data, (err, resultUpdateMaterial) => {
             console.log(resultUpdateMaterial)
             console.log(1.1)
+            
             if (err) {
               cb(err)
             } else {
@@ -94,7 +97,6 @@ exports.update = (req, res) => {
       })
     },
     (trigger, cb) => {
-
       if (trigger === 1) {
         console.log(2)
         const data = {
@@ -159,6 +161,7 @@ exports.update = (req, res) => {
               created_at: new Date(),
               updated_at: new Date()
             }
+           
             courseModel.insertDetailMaterial(req, data, (err, result) => {
               const key = `get-user-course-detail-$:{req.params.userId}-$:{req.params.detailId}`
               redisCache.del(key)
@@ -170,22 +173,34 @@ exports.update = (req, res) => {
               const key = `get-user-course-detail-$:{req.params.userId}-$:{req.params.detailId}`
               redisCache.del(key)
               dataDetail.is_detail_completed = result[0].is_completed
-              cb (err, dataDetail)
+            
+              cb(err, dataDetail)
             })
           }
         })
       } else {
         cb(null, dataDetail)
       }
+    },
+    (dataDetail, cb) => {
+      courseModel.checkUserClassProgress(req, req.params.classId, req.params.userId, (err, result) => {
+        dataDetail.classId = req.params.classId
+        if(result.jumlah_total === result.user_progress) {
+          dataDetail.class_completed = 1
+        } else {
+          dataDetail.class_completed = 0
+        }
+        cb(err, dataDetail)        
+      })
     }
 
   ],
-    (errMaterial, resultMaterial) => {
-      console.log(resultMaterial)
-      if (!errMaterial) {
-        return MiscHelper.responses(res, resultMaterial)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errMaterial, 400)
-      }
-    })
+  (errMaterial, resultMaterial) => {
+    console.log(resultMaterial)
+    if (!errMaterial) {
+      return MiscHelper.responses(res, resultMaterial)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errMaterial, 400)
+    }
+  })
 }
