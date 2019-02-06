@@ -186,7 +186,7 @@ exports.insertThreadContent = (req, res) => {
     },
     (dataThread, cb) => {
       const message = `Pertanyaan anda "${dataThread.post_content}" Telah Dibalas Oleh "${dataThread.name}"`
-      
+
       const data = {
         userid: dataThread.userid,
         message: message,
