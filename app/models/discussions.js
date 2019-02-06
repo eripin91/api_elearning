@@ -63,6 +63,15 @@ module.exports = {
       })
     })
   },
+  checkThread: (conn, discussionId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+
+      connection.query(`SELECT * FROM discussion_tab WHERE discussionid = ?`, discussionId, (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
   checkLike: (conn, disscussionId, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
