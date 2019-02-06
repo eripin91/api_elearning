@@ -5,6 +5,8 @@
 const async = require('async')
 const materialModel = require('../models/material')
 const courseModel = require('../models/courses')
+const notificationModel = require('../models/notifications')
+const classesModel = require('../models/classes')
 const redisCache = require('../libs/RedisCache')
 
 /*
@@ -66,9 +68,6 @@ exports.update = (req, res) => {
   const materialId = req.params.materialId
   async.waterfall([
     (cb) => {
-      courseModel.checkUserClassProgress(req, req.params.classId, userId, (err, result) => {
-        console.log('result adalah '+result)
-      })
       materialModel.checkUserMaterialAlreadyExist(req, userId, materialId, (errCheck, resultCheck) => {
         if (_.isEmpty(resultCheck) || errCheck) {
           console.log(1)
@@ -86,7 +85,7 @@ exports.update = (req, res) => {
           materialModel.updateUserMaterial(req, resultCheck[0].id, data, (err, resultUpdateMaterial) => {
             console.log(resultUpdateMaterial)
             console.log(1.1)
-            
+
             if (err) {
               cb(err)
             } else {
@@ -143,6 +142,26 @@ exports.update = (req, res) => {
       courseModel.getCheckCourseComplete(req, req.params.detailId, (errMaterialDetail, resultMaterialDetail) => {
         if (resultMaterialDetail.jumlah_materi === resultMaterialDetail.user_materi) {
           data.is_completed_detail = 1
+          let notif = {
+            userid: req.params.userId,
+            message: 'Selamat anda telah menyelesaikan semua materi ' + resultMaterialDetail.name + ' pada class ' + resultMaterialDetail.class_name,
+            status: 1,
+            created_at: new Date(),
+            updated_at: new Date()
+          }
+          notificationModel.checkerNotification(req, notif.message, (err, result) => {
+            console.log('result adalah ' + result[0])
+            if(result[0] === undefined) {
+              notificationModel.insert(req, notif, (errNotification, resultNotification) => {
+                const key = `get-user-notification-course$:{req.params.userId}`
+                redisCache.del(key)
+              })
+            } else {
+              console.log('err')
+            }
+          })
+
+          
         } else {
           data.is_completed_detail = 0
         }
@@ -161,7 +180,7 @@ exports.update = (req, res) => {
               created_at: new Date(),
               updated_at: new Date()
             }
-           
+
             courseModel.insertDetailMaterial(req, data, (err, result) => {
               const key = `get-user-course-detail-$:{req.params.userId}-$:{req.params.detailId}`
               redisCache.del(key)
@@ -172,8 +191,9 @@ exports.update = (req, res) => {
             courseModel.checkDetailMaterial(req, req.params.detailId, (err, result) => {
               const key = `get-user-course-detail-$:{req.params.userId}-$:{req.params.detailId}`
               redisCache.del(key)
+              console.log(result)
               dataDetail.is_detail_completed = result[0].is_completed
-            
+
               cb(err, dataDetail)
             })
           }
@@ -185,19 +205,134 @@ exports.update = (req, res) => {
     (dataDetail, cb) => {
       courseModel.checkUserClassProgress(req, req.params.classId, req.params.userId, (err, result) => {
         dataDetail.classId = req.params.classId
-        if(result.jumlah_total === result.user_progress) {
+        if (result.jumlah_total === result.user_progress) {
           dataDetail.class_completed = 1
         } else {
           dataDetail.class_completed = 0
         }
-        cb(err, dataDetail)        
+        cb(err, dataDetail)
       })
+    },
+    (dataDetail, cb) => {
+      // update data ke table user_classes
+      if(dataDetail.class_completed === 1) {
+        courseModel.checkerClassDone(req, req.params.classId, req.params.userId, (err, result) => {
+          if(result.length === 0) {
+            console.log('User Tidak Memiliki Class Ini')
+          } else {
+            let data = {
+              is_completed : 1,
+              finished_at : new Date(),
+              updated_at : new Date()
+            }
+            classesModel.updateUserClass(req, data, result[0].id,  (err, result) => {
+              let notif = {
+                userid: req.params.userId,
+                message: 'Selamat anda telah menyelesaikan semua materi ' + resultMaterialDetail.name + ' pada class ' + resultMaterialDetail.class_name,
+                status: 1,
+                created_at: new Date(),
+                updated_at: new Date()
+              }
+
+              notificationModel.checkerNotification(req, notif.message, (err, result) => {
+                if(result[0] === undefined) {
+                  notificationModel.insert(req, notif, (errNotification, resultNotification) => {
+                    const key = `get-user-notification-classes-$:{req.params.userId}`
+                    console.log(errNotification, resultNotification)
+                    redisCache.del(key)
+                  })
+                } else {
+                  console.log('ganteng')
+                }
+              })
+            })
+          }
+        })
+      }
+      cb(null, dataDetail)
+      
     }
 
   ],
   (errMaterial, resultMaterial) => {
     console.log(resultMaterial)
     if (!errMaterial) {
+      return MiscHelper.responses(res, resultMaterial)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errMaterial, 400)
+    }
+  })
+}
+
+exports.updateUserDownloadMaterial = (req, res) => {
+  async.waterfall([
+    (cb) => {
+      courseModel.checkUserMaterial(req, req.params.materialId, (errMater, resultMateri) => {
+        if(_.isEmpty(resultMateri) || errMateri) {
+          cb(errMateri, 1)
+        } else {
+          const data = {
+            is_downloaded: req.body.is_downloaded,
+            updated_at: new Date()
+          }
+          courseModel.updateUserMaterial(req, resultMateri[0].id, data, (err, result) => {
+            let notif = {
+              userid: req.params.userId,
+              message: 'Materi ' + resultMateri[0].material_name + ' telah berhasil di download',
+              status: 1,
+              created_at: new Date(),
+              updated_at: new Date()
+            }
+            if (err) {
+              cb(err)
+            } else {
+              notificationModel.insert(req, notif,(errNotification, resultNotification) => {
+                const key = `get-user-notification-materials-$:{req.params.userId}`
+                console.log(errNotification, resultNotification)
+                redisCache.del(key)
+              })
+              cb(err, result)
+            }
+          })
+        }
+      })
+    },
+    (dataMateri, cb) => {
+      if(dataMateri === 1) {
+        
+        const data = {
+          userid: userId,
+            materialid: materialId,
+            watchingduration: 0,
+            is_done_watching: 0,
+            is_downloaded: 1,
+            status: 1,
+            created_at: new Date(),
+            updated_at: new Date()
+        }
+        courseModel.insertUserMaterial(req, data, (err, result) => {
+          let notif = {
+            userid: req.params.userId,
+            message: 'Materi ' + resultMateri[0].material_name + ' telah berhasil di download',
+            status: 1,
+            created_at: new Date(),
+            updated_at: new Date()
+          }
+          notificationModel.insert(req, notif,(errNotification, resultNotification) => {
+            const key = `get-user-notification-materials-$:{req.params.userId}`
+            console.log(errNotification, resultNotification)
+            redisCache.del(key)
+          })
+          const key = `get-material-user-$:{req.params.userId}`
+          redisCache.del(key)
+          cb(err, result)
+        })
+      } else {
+        cb(null, dataMateri)
+      }
+    }
+  ], (errMaterial, resultMaterial) => {
+    if(!errMaterial) {
       return MiscHelper.responses(res, resultMaterial)
     } else {
       return MiscHelper.errorCustomStatus(res, errMaterial, 400)

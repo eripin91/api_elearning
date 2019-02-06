@@ -345,8 +345,6 @@ exports.updateUserCourseMaterial = (req, res) => {
           const data = {
             updated_at: new Date()
           }
-          console.log('ini result materi')
-          console.log(resultMateri[0])
           if (req.body.is_downloaded === undefined) {
             Object.assign(data, { is_done_watching: req.body.is_done_watching })
           } else if (req.body.is_done_watching === undefined) {
