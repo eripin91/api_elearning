@@ -37,7 +37,7 @@ exports.get = (req, res) => {
     },
     (cb) => {
       statsModel.getUserStatistic(req, req.params.userId, (errStats, resultStats) => {
-        cb(errStats, resultStats)
+        cb(errStats, _.result(resultStats, '[0]'))
       })
     }
   ], (errStats, resultStats) => {
