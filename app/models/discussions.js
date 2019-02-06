@@ -8,7 +8,7 @@ module.exports = {
       connection.query(`SELECT a.discussionid, b.fullname AS threadstarter, 
                         a.post_content AS question, a.created_at, a.updated_at, 
                         (SELECT COUNT(discussionid) FROM discussion_tab WHERE parent=a.discussionid 
-                        ORDER BY parent) AS total_replied, (SELECT COUNT(id) FROM discussion_likes_tab WHERE discussionid=a.discussionid AND status=1 ORDER BY discussionid) AS total_like, (SELECT EXISTS(SELECT * FROM discussion_likes_tab WHERE userid=? AND discussionid=a.discussionid AND status=1)) AS is_like FROM discussion_tab a LEFT JOIN users_tab b ON a.userid=b.userid WHERE a.parent = 0 AND a.courseid = ?`, [userId, courseId], (err, rows) => {
+                        ORDER BY parent) AS total_replied, (SELECT COUNT(id) FROM discussion_likes_tab WHERE discussionid=a.discussionid AND status=1 ORDER BY discussionid) AS total_like, (SELECT EXISTS(SELECT * FROM discussion_likes_tab WHERE userid=? AND discussionid=a.discussionid AND status=1)) AS is_like FROM discussion_tab a LEFT JOIN users_tab b ON a.userid=b.userid WHERE a.parent = 0 AND a.courseid = ? ORDER BY a.created_at DESC`, [userId, courseId], (err, rows) => {
         callback(err, rows)
       })
     })
