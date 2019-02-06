@@ -32,7 +32,7 @@ module.exports = {
   getMaterial: (conn, userId, detailId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query('SELECT cm.materialid, cd.detailid, cm.name, cm.thumbnails, cm.duration, (SELECT b.is_downloaded FROM courses_material_tab a LEFT JOIN users_material_progress_tab b ON a.materialid = b.materialid LEFT JOIN users_tab c ON b.userid = c.userid WHERE c.userid = ? AND b.materialid = cm.materialid) AS is_downloaded FROM courses_material_tab cm LEFT JOIN courses_detail_tab cd ON cm.detailid = cd.detailid LEFT JOIN courses_tab c ON cd.courseid = c.courseid WHERE cd.detailid = ? AND cd.status = 1', [userId, detailId], (err, rows) => {
+      connection.query('SELECT cm.materialid, cd.detailid, cm.name, cm.thumbnails, cm.duration, (SELECT b.is_downloaded, is_done_watching FROM courses_material_tab a LEFT JOIN users_material_progress_tab b ON a.materialid = b.materialid LEFT JOIN users_tab c ON b.userid = c.userid WHERE c.userid = ? AND b.materialid = cm.materialid) AS is_downloaded FROM courses_material_tab cm LEFT JOIN courses_detail_tab cd ON cm.detailid = cd.detailid LEFT JOIN courses_tab c ON cd.courseid = c.courseid WHERE cd.detailid = ? AND cd.status = 1', [userId, detailId], (err, rows) => {
         console.log(rows)
         callback(err, rows)
       })
@@ -211,7 +211,7 @@ module.exports = {
   },
   checkerClassDone: (conn, classId, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
-      if(errConnection) console.error(errConnection) 
+      if (errConnection) console.error(errConnection)
       connection.query('SELECT * FROM users_classes_tab WHERE userid = ? AND classid = ?', [userId, classId], (err, rows) => {
         callback(err, rows)
       })
