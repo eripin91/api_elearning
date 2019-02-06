@@ -2,6 +2,8 @@
 
 const async = require('async')
 const discussionsModel = require('../models/discussions')
+const notificationsModel = require('../models/notifications')
+const usersModel = require('../models/users')
 const redisCache = require('../libs/RedisCache')
 
 /*
@@ -58,7 +60,7 @@ exports.getThread = (req, res) => {
  */
 
 exports.getThreadDetail = (req, res) => {
-  const key = 'get-thread-detail' + req.params.discussionId + '-' + req.query.sortBy + '-' + req.query.orderBy
+  const key = `get-thread-detail-${req.params.discussionId}-${req.params.userId}-${req.query.sortBy}-${req.query.orderBy}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, detail => {
@@ -148,24 +150,62 @@ exports.insertThreadContent = (req, res) => {
   req.checkBody('parentId', 'parentId is required').notEmpty().isInt()
   req.checkBody('content', 'content is required').notEmpty()
 
-  const data = {
-    userid: req.body.userId,
-    post_title: '',
-    post_content: req.body.content,
-    parent: req.body.parentId,
-    status: 1,
-    created_at: new Date(),
-    updated_at: new Date()
-  }
+  const userId = req.body.userId
+  const parentId = req.body.parentId
+  const content = req.body.content
 
-  discussionsModel.insertThreadContent(req, data, (errInsert, resultInsert) => {
-    if (!errInsert) {
-      // delete redis thread detail order by like desc
-      const key = 'get-thread-detail' + req.body.parentId + '-total_like-desc'
-      redisCache.del(key)
-      return MiscHelper.responses(res, resultInsert)
+  async.waterfall([
+    (cb) => {
+      const data = {
+        userid: userId,
+        post_title: '',
+        post_content: content,
+        parent: parentId,
+        status: 1,
+        created_at: new Date(),
+        updated_at: new Date()
+      }
+
+      discussionsModel.insertThreadContent(req, data, (err) => {
+        if (err) {
+          return MiscHelper.responses(res, err, 400)
+        } else {
+          cb(null)
+        }
+      })
+    },
+    (cb) => {
+      discussionsModel.checkThread(req, parentId, (errCheck, resultCheck) => {
+        usersModel.checkUser(req, userId, (errUser, resultUser) => {
+          if (!errUser) {
+            resultCheck[0].name = resultUser[0].fullname
+          }
+          cb(errCheck, resultCheck[0])
+        })
+      })
+    },
+    (dataThread, cb) => {
+      const message = `Pertanyaan anda "${dataThread.post_content}" Telah Dibalas Oleh "${dataThread.name}"`
+
+      const data = {
+        userid: dataThread.userid,
+        message: message,
+        status: 1,
+        created_at: new Date(),
+        updated_at: new Date()
+      }
+
+      notificationsModel.insert(req, data, (errInsert, resultInsert) => {
+        const key = `get-thread-detail-${parentId}-${userId}-total_like-desc`
+        redisCache.del(key)
+        cb(errInsert, resultInsert)
+      })
+    }
+  ], (errInsertContent, resultInsertContent) => {
+    if (!errInsertContent) {
+      return MiscHelper.responses(res, resultInsertContent)
     } else {
-      return MiscHelper.errorCustomStatus(res, errInsert, 400)
+      return MiscHelper.errorCustomStatus(res, errInsertContent)
     }
   })
 }
@@ -186,11 +226,13 @@ exports.insertThreadContent = (req, res) => {
 exports.like = (req, res) => {
   req.checkBody('discussionId', 'discussionId is required').notEmpty().isInt()
   req.checkBody('userId', 'userId is required').notEmpty().isInt()
-  req.checkBody('status', 'status is required')
+  req.checkBody('status', 'status is required').notEmpty().isInt()
+  req.checkBody('courseId', 'courseId is required').notEmpty().isInt()
 
   const discussionId = req.body.discussionId
   const userId = req.body.userId
   const status = req.body.status
+  const courseId = req.body.courseId
 
   async.waterfall([
     (cb) => {
@@ -207,6 +249,10 @@ exports.like = (req, res) => {
             if (err) {
               cb(err)
             } else {
+              const key = `get-thread-${courseId}-${userId}`
+              const key2 = `get-thread-detail-${discussionId}-${userId}-total_like-desc`
+              redisCache.del(key)
+              redisCache.del(key2)
               return MiscHelper.responses(res, resultUpdateLike)
             }
           })
@@ -223,6 +269,10 @@ exports.like = (req, res) => {
       }
 
       discussionsModel.insertLike(req, data, (err, result) => {
+        const key = `get-thread-${courseId}-${userId}`
+        const key2 = `get-thread-detail-${discussionId}-${userId}-total_like-desc`
+        redisCache.del(key)
+        redisCache.del(key2)
         cb(err, result)
       })
     }
