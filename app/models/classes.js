@@ -25,6 +25,15 @@ module.exports = {
       })
     })
   },
+  getDetailClass: (conn, classId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+
+      connection.query(`SELECT a.classid, a.rating, a.name, a.cover, a.description, a.created_at, b.fullname AS guru, b.profile_picture, COUNT(c.userid) AS member, (SELECT COUNT(d.detailid) FROM courses_detail_tab d JOIN courses_tab e ON d.courseid=e.courseid WHERE e.classid=a.classid) AS courses FROM classes_tab a LEFT JOIN guru_tab b ON a.guruid=b.guruid LEFT JOIN users_classes_tab c ON a.classid=c.classid WHERE a.status=1 AND a.classid=? GROUP BY a.classid`, classId, (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
   getUserClass: (conn, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
@@ -57,7 +66,7 @@ module.exports = {
   getRank: (conn, classId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT a.score, b.name, b.profile_picture from users_scores_tab a JOIN users_tab b ON a.userid=b.userid WHERE b.status=1 AND a.status=1 AND a.type = 'class' AND a.parentid = ? ORDER BY a.score DESC LIMIT 10`, [classId], (err, rows) => {
+      connection.query(`SELECT a.score, b.fullname, b.profile_picture from users_scores_tab a JOIN users_tab b ON a.userid=b.userid WHERE b.status=1 AND a.status=1 AND a.type = 'class' AND a.parentid = ? ORDER BY a.score DESC LIMIT 10`, [classId], (err, rows) => {
         callback(err, rows)
       })
     })
@@ -65,7 +74,7 @@ module.exports = {
   getUserRank: (conn, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT a.score, b.name, b.profile_picture from users_scores_tab a JOIN users_tab b ON a.userid=b.userid WHERE b.status=1 AND a.status=1 AND a.type = 'class' AND a.userId = ?`, [userId], (err, rows) => {
+      connection.query(`SELECT a.score, b.fullname, b.profile_picture from users_scores_tab a JOIN users_tab b ON a.userid=b.userid WHERE b.status=1 AND a.status=1 AND a.type = 'class' AND a.userId = ?`, [userId], (err, rows) => {
         callback(err, rows)
       })
     })
