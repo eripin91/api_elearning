@@ -8,5 +8,9 @@ Route
   .get('/get', UsersControllers.get)
   .get('/:userId/classes', UsersControllers.getUserClass)
   .post('/login', UsersControllers.login)
+  .get('/logout', UsersControllers.logout)
+  .post('/register', UsersControllers.register)
+  .post('/profile', UsersControllers.profile)
+  .post('/change-password', UsersControllers.changePassword)
 
 module.exports = Route

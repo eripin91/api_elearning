@@ -12,7 +12,15 @@ module.exports = {
   getUserByEmail: (conn, email, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT * FROM users_tab WHERE email='${email}'`, (err, rows) => {
+      connection.query(`SELECT * FROM users_tab WHERE email = ?`, [email], (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  getUserById: (conn, userId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      connection.query(`SELECT * FROM users_tab WHERE userid = ?`, [userId], (err, rows) => {
         callback(err, rows)
       })
     })
