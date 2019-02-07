@@ -1,7 +1,7 @@
 'use strict'
 
 module.exports = {
-  get: (conn, classId, callback) => {
+  get: (conn, userId, classId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
       connection.query('SELECT c.* FROM courses_tab c LEFT JOIN classes_tab ct ON c.classid = ct.classid WHERE c.classid = ?', classId, (err, rows) => {
@@ -12,7 +12,7 @@ module.exports = {
         if (data === undefined) {
           callback(err, data)
         } else {
-          connection.query('SELECT cd.detailid, cd.name, SUM(cm.duration) as durasi FROM courses_detail_tab cd LEFT JOIN courses_material_tab cm ON cd.detailid = cm.detailid WHERE cd.courseid = ? GROUP BY(cd.detailid)', data.courseid, (err, result) => {
+          connection.query('SELECT cd.detailid, cd.name, SUM(cm.duration) as durasi, (SELECT b.is_completed FROM courses_detail_tab a LEFT JOIN users_course_detail_tab b ON a.detailid = b.detailid LEFT JOIN users_tab c ON b.userid = c.userid WHERE a.detailid = cd.detailid AND c.userid = ?) as is_completed FROM courses_detail_tab cd LEFT JOIN courses_material_tab cm ON cd.detailid = cm.detailid WHERE cd.courseid = ? GROUP BY(cd.detailid)', [userId, data.courseid], (err, result) => {
             data.course = result
             console.log(data.course)
             callback(err, data)
@@ -32,7 +32,7 @@ module.exports = {
   getMaterial: (conn, userId, detailId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query('SELECT cm.materialid, cd.detailid, cm.name, cm.thumbnails, cm.duration, (SELECT b.is_downloaded, is_done_watching FROM courses_material_tab a LEFT JOIN users_material_progress_tab b ON a.materialid = b.materialid LEFT JOIN users_tab c ON b.userid = c.userid WHERE c.userid = ? AND b.materialid = cm.materialid) AS is_downloaded FROM courses_material_tab cm LEFT JOIN courses_detail_tab cd ON cm.detailid = cd.detailid LEFT JOIN courses_tab c ON cd.courseid = c.courseid WHERE cd.detailid = ? AND cd.status = 1', [userId, detailId], (err, rows) => {
+      connection.query('SELECT cm.materialid, cd.detailid, cm.name, cm.thumbnails, cm.duration, (SELECT b.is_downloaded FROM courses_material_tab a LEFT JOIN users_material_progress_tab b ON a.materialid = b.materialid LEFT JOIN users_tab c ON b.userid = c.userid WHERE c.userid = ? AND b.materialid = cm.materialid) AS is_downloaded, (SELECT b.is_done_watching FROM courses_material_tab a LEFT JOIN users_material_progress_tab b ON a.materialid = b.materialid LEFT JOIN users_tab c ON b.userid = c.userid WHERE c.userid = ? AND b.materialid = cm.materialid) AS is_done_watching FROM courses_material_tab cm LEFT JOIN courses_detail_tab cd ON cm.detailid = cd.detailid LEFT JOIN courses_tab c ON cd.courseid = c.courseid WHERE cd.detailid = ? AND cd.status = 1', [userId, userId, detailId], (err, rows) => {
         console.log(rows)
         callback(err, rows)
       })
@@ -110,7 +110,7 @@ module.exports = {
   getUserMaterial: (conn, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query('SELECT cm.materialid, cm.name, cm.thumbnails, cm.duration FROM users_material_progress_tab um JOIN users_tab u ON um.userid = u.userid JOIN courses_material_tab cm ON cm.materialid = um.materialid where um.userid = ? AND um.is_downloaded = 1', userId, (err, rows) => {
+      connection.query('SELECT cm.materialid, cm.name, cm.thumbnails, cm.duration, um.is_done_watching, um.is_downloaded FROM users_material_progress_tab um JOIN users_tab u ON um.userid = u.userid JOIN courses_material_tab cm ON cm.materialid = um.materialid where um.userid = ? AND um.is_downloaded = 1', userId, (err, rows) => {
         callback(err, rows)
       })
     })
@@ -134,7 +134,7 @@ module.exports = {
   checkUserMaterial: (conn, materialId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query('SELECT um.*, cm.name as material_name FROM users_material_progress_tab um JOIN courses_material_tab cm ON um.materialid = cm.materialid WHERE um materialid = ' + materialId, (err, rows) => {
+      connection.query('SELECT um.*, cm.name as material_name FROM users_material_progress_tab um JOIN courses_material_tab cm ON um.materialid = cm.materialid WHERE um.materialid = ' + materialId, (err, rows) => {
         callback(err, rows)
       })
     })
@@ -212,7 +212,7 @@ module.exports = {
   checkerClassDone: (conn, classId, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query('SELECT * FROM users_classes_tab WHERE userid = ? AND classid = ?', [userId, classId], (err, rows) => {
+      connection.query('SELECT uc.*, ct.name FROM users_classes_tab uc LEFT JOIN classes_tab ct ON uc.classid = ct.classid WHERE uc.userid = ? AND uc.classid = ?', [userId, classId], (err, rows) => {
         callback(err, rows)
       })
     })

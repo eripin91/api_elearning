@@ -76,7 +76,7 @@ module.exports = {
     console.log(id)
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`UPDATE users_classes_tab SET ? WHERE id = ?`, [id, data], (errUpdate, resultUpdate) => {
+      connection.query(`UPDATE users_classes_tab SET ? WHERE id = ?`, [data, id], (errUpdate, resultUpdate) => {
         callback(errUpdate, resultUpdate.affectedRows > 0 ? _.merge(data, { id: id }) : [])
       })
     })

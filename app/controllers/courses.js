@@ -28,7 +28,7 @@ exports.get = (req, res) => {
       })
     },
     (cb) => {
-      coursesModel.get(req, req.params.idClass, (errCourses, resultCourses) => {
+      coursesModel.get(req, req.params.idUser, req.params.idClass, (errCourses, resultCourses) => {
         // checked if result === undefined
         if (resultCourses === undefined) {
           let data = { message: 'tidak ada course untuk class ini' }
@@ -394,6 +394,8 @@ exports.updateUserCourseMaterial = (req, res) => {
         coursesModel.checkCourseComplete(req, res.params.detailId, (errDetail, resultDetail) => {
           let data = {}
           if (resultDetail.jumlah_materi === resultDetail.user_materi) {
+            console.log('masuk kesini')
+
             data.is_completed = 1
           } else {
             data.is_completed = 0
@@ -402,13 +404,14 @@ exports.updateUserCourseMaterial = (req, res) => {
         })
       } else if (dataMateri.is_done_watching === 0) {
         cb(null, 1)
-      } else {
-
       }
     },
     (dataMateri, cb) => {
+      console.log('masuk kesini')
+
       if (dataMateri.is_completed === 1) {
         coursesModel.checkUserCourseDetail(req, req.params.userId, req.params.detailId, (err, result) => {
+          console.log('masuk kesini')
           if (_.isEmpty(result) || err) {
             const data = {
               userid: req.params.userId,
@@ -426,6 +429,7 @@ exports.updateUserCourseMaterial = (req, res) => {
           }
         })
       } else if (dataMateri.is_completed === 0) {
+        console.log('masuk kesini')
         const data = {
           userid: req.params.userId,
           detailid: req.params.detailId,

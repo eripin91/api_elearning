@@ -70,7 +70,6 @@ exports.update = (req, res) => {
     (cb) => {
       materialModel.checkUserMaterialAlreadyExist(req, userId, materialId, (errCheck, resultCheck) => {
         if (_.isEmpty(resultCheck) || errCheck) {
-          console.log(1)
           cb(errCheck, 1)
         } else {
           const data = {
@@ -81,10 +80,8 @@ exports.update = (req, res) => {
           } else if (req.body.is_done_watching === undefined) {
             Object.assign(data, { is_downloaded: req.body.is_downloaded })
           }
-          console.log(resultCheck)
           materialModel.updateUserMaterial(req, resultCheck[0].id, data, (err, resultUpdateMaterial) => {
             console.log(resultUpdateMaterial)
-            console.log(1.1)
 
             if (err) {
               cb(err)
@@ -97,7 +94,6 @@ exports.update = (req, res) => {
     },
     (trigger, cb) => {
       if (trigger === 1) {
-        console.log(2)
         const data = {
           userid: userId,
           materialid: materialId,
@@ -115,7 +111,6 @@ exports.update = (req, res) => {
         }
 
         materialModel.insertUserMaterial(req, data, (err, result) => {
-          console.log('ini result ' + result)
           const key = 'get-material-user-' + req.params.userId
           redisCache.del(key)
           const data = {
@@ -153,6 +148,7 @@ exports.update = (req, res) => {
             console.log('result adalah ' + result[0], err)
             if (result[0] === undefined) {
               notificationModel.insert(req, notif, (errNotification, resultNotification) => {
+                console.log(errNotification, resultNotification)
                 const key = `get-user-notification-course$:{req.params.userId}`
                 redisCache.del(key)
               })
@@ -167,7 +163,7 @@ exports.update = (req, res) => {
       })
     },
     (dataDetail, cb) => {
-      if (dataDetail.is_completed === 1) {
+      if (dataDetail.is_completed_detail === 1) {
         courseModel.checkUserCourseDetail(req, req.params.userId, req.params.detailId, (errDetail, resultDetail) => {
           if (_.isEmpty(resultDetail) || errDetail) {
             const data = {
@@ -178,11 +174,9 @@ exports.update = (req, res) => {
               created_at: new Date(),
               updated_at: new Date()
             }
-
             courseModel.insertDetailMaterial(req, data, (err, result) => {
               const key = `get-user-course-detail-$:{req.params.userId}-$:{req.params.detailId}`
               redisCache.del(key)
-              dataDetail.is_detail_completed = result[0].is_completed
               cb(err, dataDetail)
             })
           } else {
@@ -190,7 +184,6 @@ exports.update = (req, res) => {
               const key = `get-user-course-detail-$:{req.params.userId}-$:{req.params.detailId}`
               redisCache.del(key)
               console.log(result)
-              dataDetail.is_detail_completed = result[0].is_completed
 
               cb(err, dataDetail)
             })
@@ -223,15 +216,15 @@ exports.update = (req, res) => {
               finished_at: new Date(),
               updated_at: new Date()
             }
-            classesModel.updateUserClass(req, data, result[0].id, (err, result) => {
+            classesModel.updateUserClass(req, data, result[0].id, (err, resultUpdate) => {
               let notif = {
                 userid: req.params.userId,
-                message: 'Selamat anda telah menyelesaikan semua materi ' + result.name + ' pada class ' + result.class_name,
+                message: 'Selamat anda telah menyelesaikan semua materi pada class ' + result[0].name,
                 status: 1,
                 created_at: new Date(),
                 updated_at: new Date()
               }
-              console.log(err, result)
+              console.log(err, resultUpdate)
               notificationModel.checkerNotification(req, notif.message, (err, result) => {
                 if (result[0] === undefined) {
                   notificationModel.insert(req, notif, (errNotification, resultNotification) => {
@@ -252,7 +245,6 @@ exports.update = (req, res) => {
 
   ],
   (errMaterial, resultMaterial) => {
-    console.log(resultMaterial)
     if (!errMaterial) {
       return MiscHelper.responses(res, resultMaterial)
     } else {
