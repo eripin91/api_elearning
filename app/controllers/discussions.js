@@ -13,11 +13,19 @@ const redisCache = require('../libs/RedisCache')
  *
  * @param  {object} req - Parameters for request
  * @param  {objectId} req.params.courseId - Id course master
+ * @param  {objectId} req.params.userId - Id user master
  *
  * @return {object} Request object
  */
 
 exports.getThread = (req, res) => {
+  req.checkParams('courseId', 'courseId is required').notEmpty().isInt()
+  req.checkParams('userId', 'userId is required').notEmpty().isInt()
+
+  if (req.validationErrors()) {
+    return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
+  }
+
   const key = `get-thread-${req.params.courseId}-${req.params.userId}`
   async.waterfall([
     (cb) => {
@@ -30,8 +38,50 @@ exports.getThread = (req, res) => {
       })
     },
     (cb) => {
-      discussionsModel.getThread(req, req.params.userId, req.params.courseId, (errThread, resultThread) => {
+      discussionsModel.getThread(req, req.params.courseId, (errThread, resultThread) => {
         cb(errThread, resultThread)
+      })
+    },
+    (dataThread, cb) => {
+      async.eachSeries(dataThread, (item, next) => {
+        discussionsModel.checkUserLike(req, req.params.userId, item.discussionid, (err, result) => {
+          if (err) console.error(err)
+
+          result.map((like) => {
+            item.is_like = like.is_like
+          })
+          next()
+        })
+      }, err => {
+        cb(err, dataThread)
+      })
+    },
+    (dataThread, cb) => {
+      async.eachSeries(dataThread, (item, next) => {
+        discussionsModel.checkTotalReply(req, item.discussionid, (err, result) => {
+          if (err) console.error(err)
+
+          result.map((total) => {
+            item.total_replied = total.total_replied
+          })
+          next()
+        })
+      }, err => {
+        cb(err, dataThread)
+      })
+    },
+    (dataThread, cb) => {
+      async.eachSeries(dataThread, (item, next) => {
+        discussionsModel.checkTotalLike(req, item.discussionid, (err, result) => {
+          if (err) console.error(err)
+
+          result.map((total) => {
+            item.total_like = total.total_like
+          })
+          next()
+        })
+      }, err => {
+        cb(err, dataThread)
       })
     },
     (dataThread, cb) => {
@@ -49,17 +99,25 @@ exports.getThread = (req, res) => {
 }
 
 /*
- * GET : '/discussions/detail/:discussionId?sortBy={}&orderBy={}
+ * GET : '/discussions/detail/:discussionId/:userId?sortBy={}&orderBy={}
  *
  * @desc Get discussions by course
  *
  * @param  {object} req - Parameters for request
  * @param  {objectId} req.params.discussionId - Id discussion master
+ * @param  {objectId} req.params.userId - Id user master
  *
  * @return {object} Request object
  */
 
 exports.getThreadDetail = (req, res) => {
+  req.checkParams('discussionId', 'discussionId is required').notEmpty().isInt()
+  req.checkParams('userId', 'userId is required').notEmpty().isInt()
+
+  if (req.validationErrors()) {
+    return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
+  }
+
   const key = `get-thread-detail-${req.params.discussionId}-${req.params.userId}-${req.query.sortBy}-${req.query.orderBy}`
   async.waterfall([
     (cb) => {
@@ -108,6 +166,10 @@ exports.insertThreadTitle = (req, res) => {
   req.checkBody('courseId', 'courseId is required').notEmpty().isInt()
   req.checkBody('content', 'title is required').notEmpty()
 
+  if (req.validationErrors()) {
+    return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
+  }
+
   const data = {
     userid: req.body.userId,
     courseid: req.body.courseId,
@@ -121,7 +183,6 @@ exports.insertThreadTitle = (req, res) => {
 
   discussionsModel.insertThreadTitle(req, data, (errInsert, resultInsert) => {
     if (!errInsert) {
-      // delete redis thread by course
       const key = `get-thread-${req.body.courseId}-${req.body.userId}`
       redisCache.del(key)
       console.log(`${key} is deleted`)
@@ -150,14 +211,28 @@ exports.insertThreadContent = (req, res) => {
   req.checkBody('parentId', 'parentId is required').notEmpty().isInt()
   req.checkBody('content', 'content is required').notEmpty()
 
+  if (req.validationErrors()) {
+    return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
+  }
+
   const userId = req.body.userId
   const parentId = req.body.parentId
   const content = req.body.content
 
   async.waterfall([
     (cb) => {
+      discussionsModel.checkQuestion(req, parentId, (errCheck, resultCheck) => {
+        if (_.isEmpty(resultCheck) || (errCheck)) {
+          return MiscHelper.errorCustomStatus(res, errCheck, 400)
+        } else {
+          cb(null, resultCheck)
+        }
+      })
+    },
+    (dataQuestion, cb) => {
       const data = {
         userid: userId,
+        courseid: dataQuestion[0].courseid,
         post_title: '',
         post_content: content,
         parent: parentId,
@@ -170,18 +245,13 @@ exports.insertThreadContent = (req, res) => {
         if (err) {
           return MiscHelper.responses(res, err, 400)
         } else {
-          cb(null)
+          usersModel.checkUser(req, userId, (errUser, resultUser) => {
+            if (!errUser) {
+              dataQuestion[0].name = resultUser[0].fullname
+            }
+            cb(null, dataQuestion[0])
+          })
         }
-      })
-    },
-    (cb) => {
-      discussionsModel.checkThread(req, parentId, (errCheck, resultCheck) => {
-        usersModel.checkUser(req, userId, (errUser, resultUser) => {
-          if (!errUser) {
-            resultCheck[0].name = resultUser[0].fullname
-          }
-          cb(errCheck, resultCheck[0])
-        })
       })
     },
     (dataThread, cb) => {
@@ -227,12 +297,14 @@ exports.like = (req, res) => {
   req.checkBody('discussionId', 'discussionId is required').notEmpty().isInt()
   req.checkBody('userId', 'userId is required').notEmpty().isInt()
   req.checkBody('status', 'status is required').notEmpty().isInt()
-  req.checkBody('courseId', 'courseId is required').notEmpty().isInt()
+
+  if (req.validationErrors()) {
+    return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
+  }
 
   const discussionId = req.body.discussionId
   const userId = req.body.userId
   const status = req.body.status
-  const courseId = req.body.courseId
 
   async.waterfall([
     (cb) => {
@@ -249,9 +321,13 @@ exports.like = (req, res) => {
             if (err) {
               cb(err)
             } else {
-              const key = `get-thread-${courseId}-${userId}`
+              discussionsModel.checkThread(req, discussionId, (errCheck, resultCheck) => {
+                if (!errCheck) {
+                  const key = `get-thread-${resultCheck[0].courseid}-${userId}`
+                  redisCache.del(key)
+                }
+              })
               const key2 = `get-thread-detail-${discussionId}-${userId}-total_like-desc`
-              redisCache.del(key)
               redisCache.del(key2)
               return MiscHelper.responses(res, resultUpdateLike)
             }
@@ -269,9 +345,13 @@ exports.like = (req, res) => {
       }
 
       discussionsModel.insertLike(req, data, (err, result) => {
-        const key = `get-thread-${courseId}-${userId}`
+        discussionsModel.checkThread(req, discussionId, (errCheck, resultCheck) => {
+          if (!errCheck) {
+            const key = `get-thread-${resultCheck[0].courseid}-${userId}`
+            redisCache.del(key)
+          }
+        })
         const key2 = `get-thread-detail-${discussionId}-${userId}-total_like-desc`
-        redisCache.del(key)
         redisCache.del(key2)
         cb(err, result)
       })
@@ -280,7 +360,7 @@ exports.like = (req, res) => {
     if (!errLike) {
       return MiscHelper.responses(res, resultLike)
     } else {
-      return MiscHelper.responses(res, errLike, 400)
+      return MiscHelper.errorCustomStatus(res, errLike, 400)
     }
   })
 }
