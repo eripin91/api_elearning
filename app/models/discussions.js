@@ -91,7 +91,7 @@ module.exports = {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
 
-      connection.query(`SELECT * FROM discussion_tab WHERE discussionid = ?`, discussionId, (err, rows) => {
+      connection.query(`SELECT * FROM discussion_tab WHERE discussionid = ? LIMIT 1`, discussionId, (err, rows) => {
         callback(err, rows)
       })
     })
