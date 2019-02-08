@@ -133,7 +133,7 @@ exports.material = (req, res) => {
           if (result.is_downloaded === null) {
             result.is_downloaded = 0
           }
-          if(result.is_done_watching === null) {
+          if (result.is_done_watching === null) {
             result.is_done_watching = 0
           }
         })
