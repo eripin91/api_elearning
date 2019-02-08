@@ -1,14 +1,11 @@
 'use strict'
 
 module.exports = {
-  getThread: (conn, userId, courseId, callback) => {
+  getThread: (conn, courseId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
 
-      connection.query(`SELECT a.discussionid, b.fullname AS threadstarter, 
-                        a.post_content AS question, a.created_at, a.updated_at, 
-                        (SELECT COUNT(discussionid) FROM discussion_tab WHERE parent=a.discussionid 
-                        ORDER BY parent) AS total_replied, (SELECT COUNT(id) FROM discussion_likes_tab WHERE discussionid=a.discussionid AND status=1 ORDER BY discussionid) AS total_like, (SELECT EXISTS(SELECT * FROM discussion_likes_tab WHERE userid=? AND discussionid=a.discussionid AND status=1)) AS is_like FROM discussion_tab a LEFT JOIN users_tab b ON a.userid=b.userid WHERE a.parent = 0 AND a.courseid = ? ORDER BY a.created_at DESC`, [userId, courseId], (err, rows) => {
+      connection.query(`SELECT a.discussionid, b.fullname AS threadstarter, a.post_content AS question, a.created_at, a.updated_at FROM discussion_tab a LEFT JOIN users_tab b ON a.userid=b.userid WHERE a.parent = 0 AND a.courseid = ? ORDER BY a.created_at DESC`, courseId, (err, rows) => {
         callback(err, rows)
       })
     })
@@ -33,6 +30,33 @@ module.exports = {
       if (errConnection) console.error(errConnection)
 
       connection.query(`SELECT EXISTS(SELECT * FROM discussion_likes_tab WHERE userid=? AND discussionid=? AND status=1) AS is_like`, [userId, discussionId], (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  checkTotalReply: (conn, discussionId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+
+      connection.query(`SELECT COUNT(discussionid) AS total_replied FROM discussion_tab WHERE parent=? ORDER BY parent`, discussionId, (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  checkTotalLike: (conn, discussionId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+
+      connection.query(`SELECT COUNT(id) AS total_like FROM discussion_likes_tab WHERE discussionid=? AND status=1 ORDER BY discussionid`, discussionId, (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  checkQuestion: (conn, discussionId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+
+      connection.query(`SELECT * FROM discussion_tab WHERE parent=0 AND discussionid=? LIMIT 1`, discussionId, (err, rows) => {
         callback(err, rows)
       })
     })

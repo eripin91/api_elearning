@@ -30,8 +30,50 @@ exports.getThread = (req, res) => {
       })
     },
     (cb) => {
-      discussionsModel.getThread(req, req.params.userId, req.params.courseId, (errThread, resultThread) => {
+      discussionsModel.getThread(req, req.params.courseId, (errThread, resultThread) => {
         cb(errThread, resultThread)
+      })
+    },
+    (dataThread, cb) => {
+      async.eachSeries(dataThread, (item, next) => {
+        discussionsModel.checkUserLike(req, req.params.userId, item.discussionid, (err, result) => {
+          if (err) console.error(err)
+          
+          result.map((like) => {
+            item.is_like = like.is_like
+          })
+          next()
+        })
+      }, err => {
+        cb(err, dataThread)
+      })
+    },
+    (dataThread, cb) => {
+      async.eachSeries(dataThread, (item, next) => {
+        discussionsModel.checkTotalReply(req, item.discussionid, (err, result) => {
+          if (err) console.error(err)
+
+          result.map((total) => {
+            item.total_replied = total.total_replied
+          })
+          next()
+        })
+      }, err => {
+        cb(err, dataThread)
+      })
+    },
+    (dataThread, cb) => {
+      async.eachSeries(dataThread, (item, next) => {
+        discussionsModel.checkTotalLike(req, item.discussionid, (err, result) => {
+          if (err) console.error(err)
+          
+          result.map((total) => {
+            item.total_like = total.total_like
+          })
+          next()
+        })
+      }, err => {
+        cb(err, dataThread)
       })
     },
     (dataThread, cb) => {
@@ -156,8 +198,18 @@ exports.insertThreadContent = (req, res) => {
 
   async.waterfall([
     (cb) => {
+      discussionsModel.checkQuestion(req, parentId, (errCheck, resultCheck) => {
+        if(_.isEmpty(resultCheck) || (errCheck)) {
+          return MiscHelper.errorCustomStatus(res, errCheck, 400)
+        } else {
+          cb(null, resultCheck)
+        }
+      })
+    },
+    (dataQuestion, cb) => {
       const data = {
         userid: userId,
+        courseid: dataQuestion[0].courseid,
         post_title: '',
         post_content: content,
         parent: parentId,
@@ -170,18 +222,13 @@ exports.insertThreadContent = (req, res) => {
         if (err) {
           return MiscHelper.responses(res, err, 400)
         } else {
-          cb(null)
+          usersModel.checkUser(req, userId, (errUser, resultUser) => {
+            if (!errUser) {
+              dataQuestion[0].name = resultUser[0].fullname
+            }
+            cb(null, dataQuestion[0])
+          })
         }
-      })
-    },
-    (cb) => {
-      discussionsModel.checkThread(req, parentId, (errCheck, resultCheck) => {
-        usersModel.checkUser(req, userId, (errUser, resultUser) => {
-          if (!errUser) {
-            resultCheck[0].name = resultUser[0].fullname
-          }
-          cb(errCheck, resultCheck[0])
-        })
       })
     },
     (dataThread, cb) => {
