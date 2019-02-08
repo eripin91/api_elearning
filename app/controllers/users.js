@@ -36,7 +36,6 @@ exports.get = (req, res) => {
     },
     (dataUser, cb) => {
       redisCache.setex(key, 0, dataUser)
-      console.log('proccess cached')
       cb(null, dataUser)
     }
   ], (errUsers, resultUsers) => {
@@ -84,14 +83,13 @@ exports.getUserClass = (req, res) => {
     },
     (dataUserClass, cb) => {
       redisCache.setex(key, 600, dataUserClass)
-      console.log('prossess cached')
       cb(null, dataUserClass)
     }
   ], (errUserClass, resultUserClass) => {
     if (!errUserClass) {
       return MiscHelper.responses(res, resultUserClass)
     } else {
-      return MiscHelper.errorCustomStatus(res, errUserClass)
+      return MiscHelper.errorCustomStatus(res, errUserClass, 400)
     }
   })
 }
@@ -143,7 +141,7 @@ exports.login = (req, res) => {
     if (!errUser) {
       return MiscHelper.responses(res, resultUser)
     } else {
-      return MiscHelper.errorCustomStatus(res, errUser)
+      return MiscHelper.errorCustomStatus(res, errUser, 400)
     }
   })
 }
@@ -172,6 +170,64 @@ exports.logout = (req, res) => {
   usersModel.update(req, userId, data, (err, updateUser) => {
     if (err || !updateUser) return MiscHelper.errorCustomStatus(res, err || 'Failed Logout.', 400)
     return MiscHelper.responses(res, 'success logout.')
+  })
+}
+
+/*
+ * GET : '/users/request-token'
+ *
+ * @desc Login user account
+ *
+ * @param  {object} req - Parameters for request
+ * @param  {object} req.headers - userid and current-token
+ *
+ * @return {object} Request object
+ */
+
+exports.requestToken = (req, res) => {
+  const userId = parseInt(req.headers['x-telkom-user'])
+  const accessToken = req.headers['x-token-client']
+
+  if (!userId || !accessToken) return MiscHelper.errorCustomStatus(res, 'UserID or access token required.', 400)
+
+  async.waterfall([
+    (cb) => {
+      jsonwebtoken.verify(accessToken, CONFIG.CLIENT_SECRET, (err, decoded) => {
+        cb(err, decoded)
+      })
+    },
+    (token, cb) => {
+      if (userId !== parseInt(token.iss)) {
+        return MiscHelper.errorCustomStatus(res, 'Invalid auth token.', 400)
+      } else {
+        usersModel.getUserById(req, token.iss, (errUser, user) => {
+          if (!user || errUser) return MiscHelper.errorCustomStatus(res, errUser || 'User not exists', 409)
+          const dataUser = _.result(user, '[0]')
+          if (dataUser.token === accessToken) {
+            cb(null, dataUser)
+          } else {
+            return MiscHelper.errorCustomStatus(res, 'Invalid auth token.', 400)
+          }
+        })
+      }
+    },
+    (user, cb) => {
+      const data = {
+        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 days' }),
+        updated_at: new Date()
+      }
+
+      usersModel.update(req, user.userid, data, (err, updateUser) => {
+        user.token = updateUser.token
+        cb(err, user)
+      })
+    }
+  ], (errAuth, resultAuth) => {
+    if (!errAuth) {
+      return MiscHelper.responses(res, resultAuth)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errAuth, 400)
+    }
   })
 }
 
@@ -232,7 +288,7 @@ exports.profile = (req, res) => {
     if (!errUser) {
       return MiscHelper.responses(res, resultUser)
     } else {
-      return MiscHelper.errorCustomStatus(res, errUser)
+      return MiscHelper.errorCustomStatus(res, errUser, 400)
     }
   })
 }
@@ -288,7 +344,7 @@ exports.changePassword = (req, res) => {
     if (!errUser) {
       return MiscHelper.responses(res, 'Password successfully changed.')
     } else {
-      return MiscHelper.errorCustomStatus(res, errUser)
+      return MiscHelper.errorCustomStatus(res, errUser, 400)
     }
   })
 }
@@ -349,7 +405,7 @@ exports.register = (req, res) => {
     if (!errUser) {
       return MiscHelper.responses(res, resultUser)
     } else {
-      return MiscHelper.errorCustomStatus(res, errUser)
+      return MiscHelper.errorCustomStatus(res, errUser, 400)
     }
   })
 }

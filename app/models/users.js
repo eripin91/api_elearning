@@ -20,7 +20,7 @@ module.exports = {
   getUserById: (conn, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT * FROM users_tab WHERE userid = ?`, [userId], (err, rows) => {
+      connection.query(`SELECT * FROM users_tab WHERE status=1 AND userid = ?`, [userId], (err, rows) => {
         callback(err, rows)
       })
     })
