@@ -38,6 +38,9 @@ exports.get = (req, res) => {
             let minutes = Math.floor(course.durasi / 60)
             let second = course.durasi - (minutes * 60)
             course.durasi = minutes + ':' + second
+            if (course.is_completed === null) {
+              course.is_completed = 0
+            }
           })
           cb(errCourses, resultCourses)
         }
@@ -129,6 +132,9 @@ exports.material = (req, res) => {
           result.duration = minutes + ':' + second
           if (result.is_downloaded === null) {
             result.is_downloaded = 0
+          }
+          if(result.is_done_watching === null) {
+            result.is_done_watching = 0
           }
         })
         cb(errMaterial, resultMaterial)

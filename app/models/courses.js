@@ -14,7 +14,6 @@ module.exports = {
         } else {
           connection.query('SELECT cd.detailid, cd.name, SUM(cm.duration) as durasi, (SELECT b.is_completed FROM courses_detail_tab a LEFT JOIN users_course_detail_tab b ON a.detailid = b.detailid LEFT JOIN users_tab c ON b.userid = c.userid WHERE a.detailid = cd.detailid AND c.userid = ?) as is_completed FROM courses_detail_tab cd LEFT JOIN courses_material_tab cm ON cd.detailid = cm.detailid WHERE cd.courseid = ? GROUP BY(cd.detailid)', [userId, data.courseid], (err, result) => {
             data.course = result
-            console.log(data.course)
             callback(err, data)
           })
         }
