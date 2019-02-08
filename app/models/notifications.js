@@ -13,5 +13,13 @@ module.exports = {
         }
       })
     })
+  },
+  checkerNotification: (conn, message, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      connection.query('SELECT * FROM notification_tab WHERE message = ?', message, (err, rows) => {
+        callback(err, rows)
+      })
+    })
   }
 }

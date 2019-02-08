@@ -25,6 +25,15 @@ module.exports = {
       })
     })
   },
+  getDetailClass: (conn, classId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+
+      connection.query(`SELECT a.classid, a.rating, a.name, a.cover, a.description, a.created_at, b.fullname AS guru, b.profile_picture, COUNT(c.userid) AS member, (SELECT COUNT(d.detailid) FROM courses_detail_tab d JOIN courses_tab e ON d.courseid=e.courseid WHERE e.classid=a.classid) AS courses FROM classes_tab a LEFT JOIN guru_tab b ON a.guruid=b.guruid LEFT JOIN users_classes_tab c ON a.classid=c.classid WHERE a.status=1 AND a.classid=? GROUP BY a.classid`, classId, (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
   getUserClass: (conn, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
@@ -70,10 +79,13 @@ module.exports = {
       })
     })
   },
-  updateUserClass: (conn, id, data, callback) => {
+  updateUserClass: (conn, data, id, callback) => {
+    console.log('update class')
+    console.log(data)
+    console.log(id)
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`UPDATE users_classes_tab SET ? WHERE userid = ?`, [data, id], (errUpdate, resultUpdate) => {
+      connection.query(`UPDATE users_classes_tab SET ? WHERE id = ?`, [data, id], (errUpdate, resultUpdate) => {
         callback(errUpdate, resultUpdate.affectedRows > 0 ? _.merge(data, { id: id }) : [])
       })
     })
