@@ -38,7 +38,7 @@ exports.getThread = (req, res) => {
       async.eachSeries(dataThread, (item, next) => {
         discussionsModel.checkUserLike(req, req.params.userId, item.discussionid, (err, result) => {
           if (err) console.error(err)
-          
+
           result.map((like) => {
             item.is_like = like.is_like
           })
@@ -66,7 +66,7 @@ exports.getThread = (req, res) => {
       async.eachSeries(dataThread, (item, next) => {
         discussionsModel.checkTotalLike(req, item.discussionid, (err, result) => {
           if (err) console.error(err)
-          
+
           result.map((total) => {
             item.total_like = total.total_like
           })
@@ -199,7 +199,7 @@ exports.insertThreadContent = (req, res) => {
   async.waterfall([
     (cb) => {
       discussionsModel.checkQuestion(req, parentId, (errCheck, resultCheck) => {
-        if(_.isEmpty(resultCheck) || (errCheck)) {
+        if (_.isEmpty(resultCheck) || (errCheck)) {
           return MiscHelper.errorCustomStatus(res, errCheck, 400)
         } else {
           cb(null, resultCheck)
