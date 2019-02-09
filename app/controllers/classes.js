@@ -5,6 +5,16 @@ const classesModel = require('../models/classes')
 const notificationsModel = require('../models/notifications')
 const redisCache = require('../libs/RedisCache')
 
+/*
+ * GET : '/classes/get'
+ *
+ * @desc Get class by time
+ *
+ * @param  {object} req - Parameters for request
+ *
+ * @return {object} Request object
+ */
+
 exports.get = (req, res) => {
   const key = 'get-class'
   async.waterfall([
@@ -19,13 +29,37 @@ exports.get = (req, res) => {
     },
     (cb) => {
       classesModel.get(req, (errClasses, resultClasses) => {
-        // console.log(resultClasses)
-        resultClasses.map((classes) => {
-          var minutes = Math.floor(classes.durasi / 60)
-          var second = classes.durasi - (minutes * 60)
-          classes.durasi = `${minutes}:${second}`
-        })
         cb(errClasses, resultClasses)
+      })
+    },
+    (dataClasses, cb) => {
+      async.eachSeries(dataClasses, (item, next) => {
+        classesModel.checkTotalCourse(req, item.classid, (err, result) => {
+          if (err) console.error(err)
+
+          result.map((course) => {
+            item.courses = course.courses
+          })
+          next()
+        })
+      }, err => {
+        cb(err, dataClasses)
+      })
+    },
+    (dataClasses, cb) => {
+      async.eachSeries(dataClasses, (item, next) => {
+        classesModel.checkTotalDuration(req, item.classid, (err, result) => {
+          if (err) console.error(err)
+
+          result.map((course) => {
+            var minutes = Math.floor(course.durasi / 60)
+            var second = course.durasi - (minutes * 60)
+            item.durasi = `${minutes}:${second}`
+          })
+          next()
+        })
+      }, err => {
+        cb(err, dataClasses)
       })
     },
     (dataClasses, cb) => {
@@ -42,9 +76,25 @@ exports.get = (req, res) => {
   })
 }
 
+/*
+ * GET : '/classes/get/:classId/:userId'
+ *
+ * @desc Get detail class by user
+ *
+ * @param  {object} req - Parameters for request
+ * @param  {objectId} req.params.classId - Id class master
+ * @param  {objectId} req.params.userId - Id user master
+ *
+ * @return {object} Request object
+ */
+
 exports.getDetail = (req, res) => {
   req.checkParams('classId', 'classId is required').notEmpty().isInt()
   req.checkParams('userId', 'userId is required').notEmpty().isInt()
+
+  if (req.validationErrors()) {
+    return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
+  }
 
   const key = `get-class-detail-${req.params.classId}-${req.params.userId}`
 
@@ -62,17 +112,36 @@ exports.getDetail = (req, res) => {
       classesModel.getDetail(req, req.params.classId, req.params.userId, (errDetail, resultDetail) => {
         if (resultDetail.length === 0) {
           classesModel.getDetailClass(req, req.params.classId, (errData, resultData) => {
-            resultData.map((detail) => {
-              detail.is_join = 0
-            })
+            resultData[0].is_join = 0
             cb(errData, resultData[0])
           })
         } else {
-          resultDetail.map((detail) => {
-            detail.is_join = 1
+          classesModel.checkCourseDone(req, req.params.userId, req.params.classId, (err, result) => {
+            if (!err) {
+              resultDetail[0].course_done = result[0].course_done
+            }
           })
+          resultDetail[0].is_join = 1
           cb(errDetail, resultDetail[0])
         }
+      })
+    },
+    (dataDetail, cb) => {
+      classesModel.checkTotalMember(req, req.params.classId, (err, result) => {
+        dataDetail.member = result[0].member
+        cb(err, dataDetail)
+      })
+    },
+    (dataDetail, cb) => {
+      classesModel.checkTotalCourse(req, req.params.classId, (err, result) => {
+        dataDetail.course = result[0].courses
+        cb(err, dataDetail)
+      })
+    },
+    (dataDetail, cb) => {
+      classesModel.checkUserRating(req, req.params.classId, req.params.userId, (err, result) => {
+        dataDetail.is_rating = result[0].is_rating
+        cb(err, dataDetail)
       })
     },
     (dataDetail, cb) => {
@@ -89,6 +158,17 @@ exports.getDetail = (req, res) => {
   })
 }
 
+/*
+ * GET : '/classes/recs'
+ *
+ * @desc Get class recommendation
+ *
+ * @param  {object} req - Parameters for request
+ *
+ * @return {object} Request object
+ * 
+ */
+
 exports.getRec = (req, res) => {
   const key = 'get-recommendation'
   async.waterfall([
@@ -103,12 +183,37 @@ exports.getRec = (req, res) => {
     },
     (cb) => {
       classesModel.getRec(req, (errRec, resultRec) => {
-        resultRec.map((classes) => {
-          var minutes = Math.floor(classes.durasi / 60)
-          var second = classes.durasi - (minutes * 60)
-          classes.durasi = `${minutes}:${second}`
-        })
         cb(errRec, resultRec)
+      })
+    },
+    (dataRec, cb) => {
+      async.eachSeries(dataRec, (item, next) => {
+        classesModel.checkTotalCourse(req, item.classid, (err, result) => {
+          if (err) console.error(err)
+
+          result.map((course) => {
+            item.courses = course.courses
+          })
+          next()
+        })
+      }, err => {
+        cb(err, dataRec)
+      })
+    },
+    (dataRec, cb) => {
+      async.eachSeries(dataRec, (item, next) => {
+        classesModel.checkTotalDuration(req, item.classid, (err, result) => {
+          if (err) console.error(err)
+
+          result.map((course) => {
+            var minutes = Math.floor(course.durasi / 60)
+            var second = course.durasi - (minutes * 60)
+            item.durasi = `${minutes}:${second}`
+          })
+          next()
+        })
+      }, err => {
+        cb(err, dataRec)
       })
     },
     (dataRec, cb) => {
@@ -125,8 +230,24 @@ exports.getRec = (req, res) => {
   })
 }
 
+/*
+ * GET : '/classes/user/:userId'
+ *
+ * @desc Get class list of user
+ *
+ * @param  {object} req - Parameters for request
+ * @param  {objectId} req.params.userId - Id user master
+ *
+ * @return {object} Request object
+ */
+
 exports.getUserClass = (req, res) => {
   req.checkParams('userId', 'userId is required').notEmpty().isInt()
+
+  if (req.validationErrors()) {
+    return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
+  }
+
   const key = `get-user-class-${req.params.userId}`
 
   async.waterfall([
@@ -145,6 +266,48 @@ exports.getUserClass = (req, res) => {
       })
     },
     (dataUserClass, cb) => {
+      async.eachSeries(dataUserClass, (item, next) => {
+        classesModel.checkTotalCourse(req, item.classid, (err, result) => {
+          if (err) console.error(err)
+
+          result.map((course) => {
+            item.courses = course.courses
+          })
+          next()
+        })
+      }, err => {
+        cb(err, dataUserClass)
+      })
+    },
+    (dataUserClass, cb) => {
+      async.eachSeries(dataUserClass, (item, next) => {
+        classesModel.checkTotalMember(req, item.classid, (err, result) => {
+          if (err) console.error(err)
+
+          result.map((course) => {
+            item.member = course.member
+          })
+          next()
+        })
+      }, err => {
+        cb(err, dataUserClass)
+      })
+    },
+    (dataUserClass, cb) => {
+      async.eachSeries(dataUserClass, (item, next) => {
+        classesModel.checkCourseDone(req, req.params.userId, item.classid, (err, result) => {
+          if (err) console.error(err)
+
+          result.map((course) => {
+            item.course_done = course.course_done
+          })
+          next()
+        })
+      }, err => {
+        cb(err, dataUserClass)
+      })
+    },
+    (dataUserClass, cb) => {
       redisCache.setex(key, 600, dataUserClass)
       console.log('proccess cached')
       cb(null, dataUserClass)
@@ -158,10 +321,27 @@ exports.getUserClass = (req, res) => {
   })
 }
 
+/*
+ * POST : '/classes/rating'
+ *
+ * @desc Post class rating
+ *
+ * @body  {object} req - body for request
+ * @body  {objectId} req.body.userId - Id user master
+ * @body  {objectId} req.body.classId - Id class master
+ * @body  {objectId} req.body.rating - rating value
+ *
+ * @return {object} Request object
+ */
+
 exports.rating = (req, res) => {
   req.checkBody('userId', 'userId is required').notEmpty().isInt()
   req.checkBody('classId', 'classId is requires').notEmpty().isInt()
   req.checkBody('rating', 'rating is required').notEmpty().isInt()
+
+  if (req.validationErrors()) {
+    return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
+  }
 
   const userId = req.body.userId
   const classId = req.body.classId
@@ -207,9 +387,25 @@ exports.rating = (req, res) => {
   })
 }
 
+/*
+ * POST : '/discussions/like
+ *
+ * @desc Post thread like
+ *
+ * @body  {object} req - body for request
+ * @body  {objectId} req.body.userId - Id user master
+ * @body  {objectId} req.body.classId - Id class master
+ *
+ * @return {object} Request object
+ */
+
 exports.insertUserClass = (req, res) => {
   req.checkBody('userId', 'userId is required').notEmpty().isInt()
   req.checkBody('classId', 'classId is requires').notEmpty().isInt()
+
+  if (req.validationErrors()) {
+    return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
+  }
 
   const userId = req.body.userId
   const classId = req.body.classId
@@ -251,7 +447,6 @@ exports.insertUserClass = (req, res) => {
       }
 
       notificationsModel.insert(req, data, (errInsert, resultInsert) => {
-        // delete redis user detail
         const key = `get-user-class-${userId}`
         redisCache.del(key)
         cb(errInsert, resultInsert)
