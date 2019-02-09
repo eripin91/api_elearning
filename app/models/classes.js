@@ -57,7 +57,7 @@ module.exports = {
       if (errConnection) console.error(errConnection)
 
       connection.query(`SELECT SUM(f.duration) as durasi FROM courses_material_tab f LEFT JOIN courses_detail_tab g ON f.detailid=g.detailid LEFT JOIN courses_tab h ON g.courseid=h.courseid WHERE h.classid = ?`, classId, (err, rows) => {
-        callback(err,rows)
+        callback(err, rows)
       })
     })
   },

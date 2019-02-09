@@ -166,7 +166,7 @@ exports.getDetail = (req, res) => {
  * @param  {object} req - Parameters for request
  *
  * @return {object} Request object
- * 
+ *
  */
 
 exports.getRec = (req, res) => {
