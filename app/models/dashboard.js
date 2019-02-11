@@ -52,7 +52,7 @@ module.exports = {
   getClassRecomendationLimit: (conn, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT ct.classid, ct.name, gt.fullname AS guru, (SELECT COUNT(*) FROM users_classes_tab WHERE classid = ct.classid) as member FROM classes_tab ct LEFT JOIN guru_tab gt ON ct.guruid = gt.guruid ORDER BY ct.priority DESC LIMIT 5`, (err, rows) => {
+      connection.query(`SELECT ct.classid, ct.name, gt.fullname AS guru, ct.cover, (SELECT COUNT(*) FROM users_classes_tab WHERE classid = ct.classid) as member FROM classes_tab ct LEFT JOIN guru_tab gt ON ct.guruid = gt.guruid ORDER BY ct.priority DESC LIMIT 5`, (err, rows) => {
         callback(err, rows)
       })
     })
