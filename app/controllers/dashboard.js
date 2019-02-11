@@ -35,9 +35,9 @@ exports.get = (req, res) => {
     (data, cb) => {
       dashboardModel.getUserClassLimit(req, req.params.userId, (errClass, resultClass) => {
         if (resultClass === undefined) {
-          data.user_classes_list = 'Anda Belum Mendaftar Kelas'
+          data.user_class_list = 'Anda Belum Mendaftar Kelas'
         } else {
-          data.user_classes_list = resultClass
+          data.user_class_list = resultClass
         }
         cb(errClass, data)
       })
@@ -56,9 +56,9 @@ exports.get = (req, res) => {
     (data, cb) => {
       dashboardModel.getClass(req, (errClass, resultClass) => {
         if (resultClass === undefined) {
-          data.class = 0
+          data.recent_class = 0
         } else {
-          data.class = resultClass.length
+          data.recent_class = resultClass.length
         }
         cb(errClass, data)
       })
@@ -66,9 +66,9 @@ exports.get = (req, res) => {
     (data, cb) => {
       dashboardModel.getClassLimit(req, (errClass, resultClass) => {
         if (resultClass === undefined) {
-          data.recent_class = []
+          data.recent_class_list = []
         } else {
-          data.recent_class = resultClass
+          data.recent_class_list = resultClass
         }
         cb(errClass, data)
       })
@@ -76,9 +76,9 @@ exports.get = (req, res) => {
     (data, cb) => {
       dashboardModel.getClassRecomendation(req, (errClass, resultClass) => {
         if (resultClass.length === 0) {
-          data.recomendation = 0
+          data.recommendation_class = 0
         } else {
-          data.recomendation = resultClass.length
+          data.recommendation_class = resultClass.length
         }
         cb(errClass, data)
       })
@@ -86,9 +86,9 @@ exports.get = (req, res) => {
     (data, cb) => {
       dashboardModel.getClassRecomendationLimit(req, (errClass, resultClass) => {
         if (resultClass.length === 0) {
-          data.recomendation_class = []
+          data.recommendation_class_list = []
         } else {
-          data.recomendation_class = resultClass
+          data.recommendation_class_list = resultClass
         }
         cb(errClass, data)
       })
