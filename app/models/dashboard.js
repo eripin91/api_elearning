@@ -12,7 +12,7 @@ module.exports = {
   getUserClassLimit: (conn, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT ct.classid, ct.name AS class_name, ct.cover, gt.fullname as guru, (SELECT COUNT(*) FROM users_classes_tab WHERE classid = ct.classid) AS member FROM users_classes_tab uc LEFT JOIN classes_tab ct ON uc.classid = ct.classid LEFT JOIN guru_tab gt ON ct.guruid = gt.guruid WHERE userid = ? LIMIT 5`, [userId], (err, rows) => {
+      connection.query(`SELECT ct.classid, ct.name AS class_name, ct.cover, gt.fullname as guru, (SELECT COUNT(*) FROM users_classes_tab WHERE classid = ct.classid) AS member FROM users_classes_tab uc LEFT JOIN classes_tab ct ON uc.classid = ct.classid LEFT JOIN guru_tab gt ON ct.guruid = gt.guruid  WHERE userid = ? LIMIT 5`, [userId], (err, rows) => {
         callback(err, rows)
       })
     })
