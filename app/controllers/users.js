@@ -119,8 +119,12 @@ exports.login = (req, res) => {
       usersModel.getUserByEmail(req, req.body.email, (errUser, user) => {
         if (!user) return MiscHelper.notFound(res, 'Email not found on our database')
         const dataUser = _.result(user, '[0]')
-        if (MiscHelper.setPassword(req.body.password, dataUser.salt).passwordHash === dataUser.password) {
-          cb(errUser, dataUser)
+        if (_.result(dataUser, 'salt')) {
+          if (MiscHelper.setPassword(req.body.password, dataUser.salt).passwordHash === dataUser.password) {
+            cb(errUser, dataUser)
+          } else {
+            return MiscHelper.errorCustomStatus(res, 'Email or password is invalid!', 400)
+          }
         } else {
           return MiscHelper.errorCustomStatus(res, 'Email or password is invalid!', 400)
         }
@@ -203,8 +207,12 @@ exports.requestToken = (req, res) => {
         usersModel.getUserById(req, token.iss, (errUser, user) => {
           if (!user || errUser) return MiscHelper.errorCustomStatus(res, errUser || 'User not exists', 409)
           const dataUser = _.result(user, '[0]')
-          if (dataUser.token === accessToken) {
-            cb(null, dataUser)
+          if (_.result(dataUser, 'token')) {
+            if (dataUser.token === accessToken) {
+              cb(null, dataUser)
+            } else {
+              return MiscHelper.errorCustomStatus(res, 'Invalid auth token.', 400)
+            }
           } else {
             return MiscHelper.errorCustomStatus(res, 'Invalid auth token.', 400)
           }
@@ -325,19 +333,23 @@ exports.changePassword = (req, res) => {
       })
     },
     (dataUser, cb) => {
-      if (MiscHelper.setPassword(req.body.oldpassword, dataUser.salt).passwordHash === dataUser.password) {
-        const salt = MiscHelper.generateSalt(18)
-        const passwordHash = MiscHelper.setPassword(req.body.password, salt)
-        const data = {
-          password: passwordHash.passwordHash,
-          salt: passwordHash.salt
-        }
+      if (_.result(dataUser, 'salt')) {
+        if (MiscHelper.setPassword(req.body.oldpassword, dataUser.salt).passwordHash === dataUser.password) {
+          const salt = MiscHelper.generateSalt(18)
+          const passwordHash = MiscHelper.setPassword(req.body.password, salt)
+          const data = {
+            password: passwordHash.passwordHash,
+            salt: passwordHash.salt
+          }
 
-        usersModel.update(req, userId, data, (err, updateUser) => {
-          cb(err, updateUser)
-        })
+          usersModel.update(req, userId, data, (err, updateUser) => {
+            cb(err, updateUser)
+          })
+        } else {
+          return MiscHelper.errorCustomStatus(res, 'Invalid old password.', 409)
+        }
       } else {
-        return MiscHelper.errorCustomStatus(res, 'Invalid old password.', 409)
+        return MiscHelper.errorCustomStatus(res, 'Failed change password, please contact administrator.', 409)
       }
     }
   ], (errUser, resultUser) => {
