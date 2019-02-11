@@ -143,6 +143,7 @@ exports.update = (req, res) => {
             updated_at: new Date()
           }
           notificationModel.checkerNotification(req, notif.message, (err, result) => {
+            if (err) console.error(err)
             if (result[0] === undefined) {
               notificationModel.insert(req, notif, (errNotification, resultNotification) => {
                 console.log(errNotification, resultNotification)
