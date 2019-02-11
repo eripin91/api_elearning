@@ -94,11 +94,12 @@ exports.get = (req, res) => {
       })
     },
     (data, cb) => {
-      async.eachSeries(data.recomendation_class, (item, next) => {
+      async.eachSeries(data.recomendation_class_list, (item, next) => {
         dashboardModel.getDetailCount(req, item.classid, (err, result) => {
           if (err) console.error(err)
           result.map((total) => {
             item.courses = total.total_bab
+            console.log(item)
           })
           next()
         })
@@ -108,7 +109,7 @@ exports.get = (req, res) => {
       })
     },
     (data, cb) => {
-      async.eachSeries(data.recomendation_class, (item, next) => {
+      async.eachSeries(data.recomendation_class_list, (item, next) => {
         dashboardModel.getDurationCount(req, item.classid, (err, result) => {
           if (err) console.error(err)
           result.map((total) => {
