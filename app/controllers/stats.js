@@ -73,6 +73,18 @@ exports.get = (req, res) => {
   })
 }
 
+/*
+ * GET : '/stats/certificate/:userId/:classId'
+ *
+ * @desc Get certificate of passing class by user
+ *
+ * @param  {object} req - Parameters for request
+ * @param  {objectId} req.params.userId - userId
+ * @param  {objectId} req.params.classId - classId
+ *
+ * @return {object} Request object
+ */
+
 exports.getCertificate = (req, res) => {
   req.checkParams('userId', 'userId is required').notEmpty().isInt()
   req.checkParams('classId', 'classId is required').notEmpty().isInt()
@@ -115,6 +127,17 @@ exports.getCertificate = (req, res) => {
     }
   })
 }
+
+/*
+ * GET : '/stats/certificate/:userId'
+ *
+ * @desc Get all certificate list per user
+ *
+ * @param  {object} req - Parameters for request
+ * @param  {objectId} req.params.userId - userId
+ *
+ * @return {object} Request object
+ */
 
 exports.getCertificateList = (req, res) => {
   req.checkParams('userId', 'userId is required').notEmpty().isInt()
