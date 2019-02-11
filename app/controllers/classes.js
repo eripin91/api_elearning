@@ -110,7 +110,7 @@ exports.getDetail = (req, res) => {
     },
     (cb) => {
       classesModel.getDetail(req, req.params.classId, req.params.userId, (errDetail, resultDetail) => {
-        if (resultDetail.length === 0) {
+        if (_.isEmpty(resultDetail)) {
           classesModel.getDetailClass(req, req.params.classId, (errData, resultData) => {
             resultData[0].is_join = 0
             cb(errData, resultData[0])

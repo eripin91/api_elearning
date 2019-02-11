@@ -20,7 +20,7 @@ module.exports = {
   getDetail: (conn, classId, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT a.classid, a.userid, b.name, b.description, b.cover, b.rating, b.created_at, c.fullname, c.profile_picture FROM users_classes_tab a JOIN classes_tab b on a.classid=b.classid JOIN guru_tab c ON b.guruid=c.guruid WHERE a.classid=? AND a.userid=? AND a.status=1`, [classId, userId], (err, rows) => {
+      connection.query(`SELECT a.classid, a.userid, b.name, b.description, b.cover, b.rating, b.created_at, c.fullname As guru, c.profile_picture FROM users_classes_tab a JOIN classes_tab b on a.classid=b.classid JOIN guru_tab c ON b.guruid=c.guruid WHERE a.classid=? AND a.userid=? AND a.status=1`, [classId, userId], (err, rows) => {
         callback(err, rows)
       })
     })
