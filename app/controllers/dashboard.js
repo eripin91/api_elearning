@@ -27,7 +27,6 @@ exports.get = (req, res) => {
     (cb) => {
       dashboardModel.getUserClass(req, req.params.userId, (errClass, resultClass) => {
         let data = {}
-        redisCache.setex(key, 81600, resultClass)
         data.user_class = resultClass.length
         cb(errClass, data)
       })
