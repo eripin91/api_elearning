@@ -35,9 +35,9 @@ exports.get = (req, res) => {
     (data, cb) => {
       dashboardModel.getUserClassLimit(req, req.params.userId, (errClass, resultClass) => {
         if (resultClass === undefined) {
-          data.user_class_list = 'Anda Belum Mendaftar Kelas'
+          data.user_classes_list = 'Anda Belum Mendaftar Kelas'
         } else {
-          data.user_class_list = resultClass
+          data.user_classes_list = resultClass
         }
         cb(errClass, data)
       })
@@ -76,9 +76,9 @@ exports.get = (req, res) => {
     (data, cb) => {
       dashboardModel.getClassRecomendation(req, (errClass, resultClass) => {
         if (resultClass.length === 0) {
-          data.recommendation_class = 0
+          data.recomendation_class = 0
         } else {
-          data.recommendation_class = resultClass.length
+          data.recomendation_class = resultClass.length
         }
         cb(errClass, data)
       })
@@ -86,9 +86,9 @@ exports.get = (req, res) => {
     (data, cb) => {
       dashboardModel.getClassRecomendationLimit(req, (errClass, resultClass) => {
         if (resultClass.length === 0) {
-          data.recommendation_class_list = []
+          data.recomendation_class_list = []
         } else {
-          data.recommendation_class_list = resultClass
+          data.recomendation_class_list = resultClass
         }
         cb(errClass, data)
       })
