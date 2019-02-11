@@ -46,5 +46,19 @@ module.exports = {
     }
 
     return res.status(resultPrint.status).json(resultPrint)
+  },
+  setPassword: (password, salt) => {
+    const crypto = require('crypto')
+    let hash = crypto.createHmac('sha512', salt)
+    hash.update(password)
+    let value = hash.digest('hex')
+    return {
+      salt: salt,
+      passwordHash: value
+    }
+  },
+  generateSalt: (length) => {
+    const crypto = require('crypto')
+    return crypto.randomBytes(Math.ceil(length / 2)).toString('hex').slice(0, length)
   }
 }

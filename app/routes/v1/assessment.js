@@ -1,10 +1,11 @@
-/* global AssessmentControllers */
+/* global AssessmentControllers AuthHelper */
 
 'use strict'
 
 var Route = express.Router()
 
 Route
+  .all('/*', AuthHelper.requiresAuthorization)
   .get('/get/:assessmentId', AssessmentControllers.getDetail)
   .get('/get-questions/:parentId', AssessmentControllers.getQuestions)
   .get('/get-questions-number/:parentId/:userId', AssessmentControllers.getQuestionsNumber)
