@@ -24,7 +24,8 @@ const CONFIG = {
   SESSION_SECRET: process.env.SESSION_SECRET || 'zd_TEkgW5C_$8]j.',
   REQUEST_HEADERS: {
     Authorization: 'X-COURSES-API'
-  }
+  },
+  CLIENT_SECRET: process.env.CLIENT_SECRET
 }
 
 module.exports = CONFIG

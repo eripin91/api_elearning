@@ -42,7 +42,7 @@ exports.get = (req, res) => {
     }
   ], (errStats, resultStats) => {
     if (!errStats) {
-      return MiscHelper.responses(res, resultStats)
+      return MiscHelper.responses(res, resultStats, 400)
     } else {
       return MiscHelper.errorCustomStatus(res, errStats, 400)
     }

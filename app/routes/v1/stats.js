@@ -1,10 +1,11 @@
-/* global StatsControllers */
+/* global StatsControllers AuthHelper */
 
 'use strict'
 
 var Route = express.Router()
 
 Route
-  .get('/get/:userId', StatsControllers.get)
+  .all('/*', AuthHelper.requiresAuthorization)
+  .get('/get/:userId', AuthHelper.requiresAccessToken, StatsControllers.get)
 
 module.exports = Route
