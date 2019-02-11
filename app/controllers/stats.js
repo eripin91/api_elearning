@@ -95,7 +95,7 @@ exports.getCertificate = (req, res) => {
     (cb) => {
       statsModel.getUserCertificate(req, req.params.userId, req.params.classId, (errCertificate, resultCertificate) => {
         if (_.isEmpty(resultCertificate)) {
-          resultCertificate.push({certificate: 'You are Not Passed This Class Yet'})
+          resultCertificate.push({ certificate: 'You are Not Passed This Class Yet' })
           cb(errCertificate, resultCertificate[0])
         } else {
           cb(errCertificate, resultCertificate[0])
@@ -166,5 +166,4 @@ exports.getCertificateList = (req, res) => {
       return MiscHelper.errorCustomStatus(res, errList)
     }
   })
-  
 }
