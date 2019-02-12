@@ -184,7 +184,6 @@ exports.insertThreadTitle = (req, res) => {
   discussionsModel.insertThreadTitle(req, data, (errInsert, resultInsert) => {
     if (!errInsert) {
       const key = `get-thread-${req.body.courseId}-${req.body.userId}`
-      redisCache.del(key)
       console.log(`${key} is deleted`)
       return MiscHelper.responses(res, resultInsert)
     } else {
@@ -255,7 +254,7 @@ exports.insertThreadContent = (req, res) => {
       })
     },
     (dataThread, cb) => {
-      const message = `Pertanyaan anda "${dataThread.post_content}" Telah Dibalas Oleh "${dataThread.name}"`
+      const message = `Pertanyaan anda Telah Dibalas Oleh ${dataThread.name}`
 
       const data = {
         userid: dataThread.userid,
@@ -267,6 +266,7 @@ exports.insertThreadContent = (req, res) => {
 
       notificationsModel.insert(req, data, (errInsert, resultInsert) => {
         const key = `get-thread-detail-${parentId}-${userId}-total_like-desc`
+        console.log(key)
         redisCache.del(key)
         cb(errInsert, resultInsert)
       })
