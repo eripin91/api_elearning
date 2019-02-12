@@ -15,5 +15,7 @@ Route
   .post('/profile', UsersControllers.profile)
   .post('/confirm', UsersControllers.confirm)
   .post('/change-password', UsersControllers.changePassword)
+  .post('/forgot-password', UsersControllers.forgotPassword)
+  .post('/set-password-forgot', UsersControllers.setPasswordForgot)
 
 module.exports = Route
