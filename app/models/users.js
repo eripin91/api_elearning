@@ -63,5 +63,35 @@ module.exports = {
         callback(errUpdate, resultUpdate.affectedRows > 0 ? _.merge(data, { userid: id }) : [])
       })
     })
+  },
+  getAuthUser: (conn, userId, type, code, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      connection.query(`SELECT * FROM users_auth_tab WHERE userid = ? AND type = ? AND verify_code = ? AND status=1`, [userId, type, code], (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  insertAuth: (conn, data, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+
+      connection.query('INSERT INTO users_auth_tab SET ? ', data, (err, rows) => {
+        if (err) {
+          callback(err)
+        } else {
+          callback(null, _.merge(data, { id: rows.insertId }))
+        }
+      })
+    })
+  },
+  updateAuth: (conn, id, data, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+
+      connection.query('UPDATE users_auth_tab SET ? WHERE id = ? ', [data, id], (errUpdate, resultUpdate) => {
+        callback(errUpdate, resultUpdate.affectedRows > 0 ? data : [])
+      })
+    })
   }
 }

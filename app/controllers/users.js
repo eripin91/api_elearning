@@ -3,6 +3,8 @@
 'use strict'
 
 const async = require('async')
+const moment = require('moment')
+const isRealEmail = require('mailchecker/platform/node').isValid
 const jsonwebtoken = require('jsonwebtoken')
 const usersModel = require('../models/users')
 const redisCache = require('../libs/RedisCache')
@@ -321,7 +323,7 @@ exports.changePassword = (req, res) => {
   req.checkBody('newpassword', 'newpassword is required').notEmpty()
   req.checkBody('confpassword', "Confirm password don't match with password.").isMatch(req.body.newpassword)
 
-  const userId = req.headers['e-learning-user']
+  const userId = req.headers['x-telkom-user']
 
   if (req.validationErrors()) {
     return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
@@ -364,6 +366,139 @@ exports.changePassword = (req, res) => {
 }
 
 /*
+ * POST : '/users/forgot-password'
+ *
+ * @desc Login user account
+ *
+ * @param  {object} req - Parameters for request
+ * @param  {objectId} req.body.email - email account
+ *
+ * @return {object} Request object
+ */
+
+exports.forgotPassword = (req, res) => {
+  req.checkBody('email', 'confirm_code is required').notEmpty()
+
+  if (req.validationErrors()) {
+    return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
+  }
+
+  async.waterfall([
+    (cb) => {
+      const email = _.toLower(req.body.email)
+
+      if (isRealEmail(email)) {
+        cb(null, email)
+      } else {
+        return MiscHelper.errorCustomStatus(res, 'Please enter your business email.', 400)
+      }
+    },
+    (email, cb) => {
+      usersModel.getUserByEmail(req, email, (errUser, user) => {
+        if (!user || _.isEmpty(user)) return MiscHelper.notFound(res, 'Email is not exists.')
+        cb(errUser, _.result(user, '[0]'))
+      })
+    },
+    (user, cb) => {
+      const data = {
+        status: 1,
+        type: 2,
+        verify_code: Math.floor((Math.random() * 9999) + 1000),
+        userid: user.userid,
+        expired_at: moment(new Date()).add(12, 'hours').format('YYYY-MM-DD HH:mm:ss'),
+        created_at: new Date(),
+        updated_at: new Date()
+      }
+
+      usersModel.insertAuth(req, data, (err, insertUser) => {
+        cb(err, insertUser)
+      })
+    }
+  ], (errUser, resultUser) => {
+    if (!errUser) {
+      return MiscHelper.responses(res, resultUser)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errUser, 400)
+    }
+  })
+}
+
+/*
+ * POST : '/users/set-password'
+ *
+ * @desc Login user account
+ *
+ * @param  {object} req - Parameters for request
+ * @param  {objectId} req.headers[x-telkom-user] - email account user
+ * @param  {objectId} req.body.confirm_code - confirm code auth from email
+ *
+ * @return {object} Request object
+ */
+
+exports.setPasswordForgot = (req, res) => {
+  const userId = parseInt(req.headers['x-telkom-user'])
+  req.checkBody('verify_code', 'verify_code is required').notEmpty()
+  req.checkBody('password', 'password is required').notEmpty()
+  req.checkBody('confpassword', "Confirm password don't match with password.").isMatch(req.body.password)
+
+  const verifyCode = req.body.verify_code
+
+  if (req.validationErrors()) {
+    return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
+  }
+
+  async.waterfall([
+    (cb) => {
+      usersModel.getUserById(req, userId, (errUser, user) => {
+        cb(errUser, _.result(user, '[0]'))
+      })
+    },
+    (user, cb) => {
+      usersModel.getAuthUser(req, userId, 2, verifyCode, (err, userAuth) => {
+        if (verifyCode === _.result(userAuth, '[0].verify_code')) {
+          if (moment(userAuth[0].expired_at).isSameOrBefore(new Date())) {
+            return MiscHelper.errorCustomStatus(res, 'verify code has been expired.', 409)
+          } else {
+            cb(err, user, userAuth)
+          }
+        } else {
+          return MiscHelper.errorCustomStatus(res, 'Invalid verify code.', 409)
+        }
+      })
+    },
+    (user, userAuth, cb) => {
+      const data = {
+        status: 0
+      }
+
+      usersModel.updateAuth(req, userAuth[0].id, data, (err, updateAuth) => {
+        cb(err, user)
+      })
+    },
+    (user, cb) => {
+      const salt = MiscHelper.generateSalt(18)
+      const passwordHash = MiscHelper.setPassword(req.body.password, salt)
+      const data = {
+        password: passwordHash.passwordHash,
+        salt: passwordHash.salt
+      }
+
+      usersModel.update(req, userId, data, (err, updateUser) => {
+        delete user.password
+        delete user.salt
+        cb(err, user)
+      })
+    }
+  ], (errUser, resultUser) => {
+    if (!errUser) {
+      return MiscHelper.responses(res, resultUser)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errUser, 400)
+    }
+  })
+}
+
+/*
  * POST : '/users/confirm'
  *
  * @desc Login user account
@@ -377,11 +512,13 @@ exports.changePassword = (req, res) => {
 
 exports.confirm = (req, res) => {
   const userId = parseInt(req.headers['x-telkom-user'])
-  req.checkBody('confirm_code', 'confirm_code is required').notEmpty()
+  req.checkBody('verify_code', 'verify code is required').notEmpty()
 
   if (req.validationErrors()) {
     return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
   }
+
+  const verifyCode = req.body.verify_code
 
   async.waterfall([
     (cb) => {
@@ -390,23 +527,41 @@ exports.confirm = (req, res) => {
       })
     },
     (user, cb) => {
-      if (user) {
-        if (user.confirm_code === req.body.confirm_code) {
-          const data = {
-            confirm_code: '',
-            confirm: 1,
-            updated_at: new Date()
+      usersModel.getAuthUser(req, userId, 1, verifyCode, (err, userAuth) => {
+        if (verifyCode === _.result(userAuth, '[0].verify_code')) {
+          if (moment(userAuth[0].expired_at).isSameOrBefore(new Date())) {
+            return MiscHelper.errorCustomStatus(res, 'verify code has been expired.', 409)
+          } else {
+            cb(err, user, userAuth)
           }
-
-          usersModel.update(req, user.userid, data, (err, updateUser) => {
-            user.token = data.token
-            delete user.password
-            delete user.salt
-            cb(err, user)
-          })
         } else {
-          return MiscHelper.errorCustomStatus(res, 'Invalid confirm code.', 400)
+          return MiscHelper.errorCustomStatus(res, 'Invalid verify code.', 409)
         }
+      })
+    },
+    (user, userAuth, cb) => {
+      const data = {
+        status: 0
+      }
+
+      usersModel.updateAuth(req, userAuth[0].id, data, (err, updateAuth) => {
+        cb(err, user)
+      })
+    },
+    (user, cb) => {
+      if (user) {
+        const data = {
+          confirm: 1,
+          updated_at: new Date()
+        }
+
+        usersModel.update(req, user.userid, data, (err, updateUser) => {
+          user.token = data.token
+          user.confirm = 1
+          delete user.password
+          delete user.salt
+          cb(err, user)
+        })
       } else {
         return MiscHelper.errorCustomStatus(res, 'Invalid user.', 400)
       }
@@ -448,7 +603,16 @@ exports.register = (req, res) => {
 
   async.waterfall([
     (cb) => {
-      usersModel.getUserByEmail(req, req.body.email, (errUser, user) => {
+      const email = _.toLower(req.body.email)
+
+      if (isRealEmail(email)) {
+        cb(null, email)
+      } else {
+        return MiscHelper.errorCustomStatus(res, 'Please enter your business email.', 400)
+      }
+    },
+    (email, cb) => {
+      usersModel.getUserByEmail(req, email, (errUser, user) => {
         if (user && user.length > 0) return MiscHelper.notFound(res, 'Email already exists, please choose another email or do forgot password.')
         cb(errUser)
       })
@@ -466,13 +630,28 @@ exports.register = (req, res) => {
         phone: req.body.phone,
         status: 1,
         confirm: 0,
-        confirm_code: Math.floor((Math.random() * 9999) + 1000),
         created_at: new Date(),
         updated_at: new Date()
       }
 
       usersModel.insert(req, data, (err, insertUser) => {
         cb(err, insertUser)
+      })
+    },
+    (user, cb) => {
+      const data = {
+        status: 1,
+        type: 1,
+        verify_code: Math.floor((Math.random() * 9999) + 1000),
+        userid: user.id,
+        expired_at: moment(new Date()).add(12, 'hours').format('YYYY-MM-DD HH:mm:ss'),
+        created_at: new Date(),
+        updated_at: new Date()
+      }
+
+      usersModel.insertAuth(req, data, (err, insertUser) => {
+        user.verify_code = insertUser.verify_code
+        cb(err, user)
       })
     }
   ], (errUser, resultUser) => {
