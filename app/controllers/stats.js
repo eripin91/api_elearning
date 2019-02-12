@@ -107,9 +107,10 @@ exports.getCertificate = (req, res) => {
     (cb) => {
       statsModel.getUserCertificate(req, req.params.userId, req.params.classId, (errCertificate, resultCertificate) => {
         if (_.isEmpty(resultCertificate)) {
-          resultCertificate.push({ certificate: 'You are Not Passed This Class Yet' })
+          resultCertificate.push({ message: 'You are Not Passed This Class Yet' })
           cb(errCertificate, resultCertificate[0])
         } else {
+          resultCertificate[0].certificate = ``
           cb(errCertificate, resultCertificate[0])
         }
       })

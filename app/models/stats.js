@@ -13,7 +13,7 @@ module.exports = {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
 
-      connection.query(`SELECT certificate FROM users_classes_tab WHERE userid=? AND classid=? AND is_completed=1 AND status=1`, [userId, classId], (err, rows) => {
+      connection.query(`SELECT b.fullname AS username, c.name AS classname FROM users_classes_tab a JOIN users_tab b ON a.userid=b.userid JOIN classes_tab c ON a.classid=c.classid WHERE a.userid=? AND a.classid=? AND a.is_completed=1 AND a.status=1`, [userId, classId], (err, rows) => {
         callback(err, rows)
       })
     })
