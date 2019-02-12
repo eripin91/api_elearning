@@ -223,7 +223,7 @@ exports.insertThreadContent = (req, res) => {
     (cb) => {
       discussionsModel.checkQuestion(req, parentId, (errCheck, resultCheck) => {
         if (_.isEmpty(resultCheck) || (errCheck)) {
-          return MiscHelper.errorCustomStatus(res, errCheck, 400)
+          return MiscHelper.errorCustomStatus(res, {message:"Question is not found"})
         } else {
           cb(null, resultCheck)
         }
