@@ -138,6 +138,8 @@ exports.login = (req, res) => {
 
       usersModel.update(req, user.userid, data, (err, updateUser) => {
         user.token = data.token
+        delete user.password
+        delete user.salt
         cb(err, user)
       })
     }
@@ -273,7 +275,7 @@ exports.profile = (req, res) => {
     (cb) => {
       if (email !== newemail) {
         usersModel.getUserByEmail(req, newemail, (errUser, user) => {
-          if (user) return MiscHelper.errorCustomStatus(res, 'Email already exists, please choose another email.', 409)
+          if (user && user.length > 0) return MiscHelper.errorCustomStatus(res, 'Email already exists, please choose another email.', 409)
           cb(errUser)
         })
       } else {
@@ -362,6 +364,63 @@ exports.changePassword = (req, res) => {
 }
 
 /*
+ * POST : '/users/confirm'
+ *
+ * @desc Login user account
+ *
+ * @param  {object} req - Parameters for request
+ * @param  {objectId} req.headers[x-telkom-user] - email account user
+ * @param  {objectId} req.body.confirm_code - confirm code auth from email
+ *
+ * @return {object} Request object
+ */
+
+exports.confirm = (req, res) => {
+  const userId = parseInt(req.headers['x-telkom-user'])
+  req.checkBody('confirm_code', 'confirm_code is required').notEmpty()
+
+  if (req.validationErrors()) {
+    return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
+  }
+
+  async.waterfall([
+    (cb) => {
+      usersModel.getUserById(req, userId, (errUser, user) => {
+        cb(errUser, _.result(user, '[0]'))
+      })
+    },
+    (user, cb) => {
+      if (user) {
+        if (user.confirm_code === req.body.confirm_code) {
+          const data = {
+            confirm_code: '',
+            confirm: 1,
+            updated_at: new Date()
+          }
+
+          usersModel.update(req, user.userid, data, (err, updateUser) => {
+            user.token = data.token
+            delete user.password
+            delete user.salt
+            cb(err, user)
+          })
+        } else {
+          return MiscHelper.errorCustomStatus(res, 'Invalid confirm code.', 400)
+        }
+      } else {
+        return MiscHelper.errorCustomStatus(res, 'Invalid user.', 400)
+      }
+    }
+  ], (errUser, resultUser) => {
+    if (!errUser) {
+      return MiscHelper.responses(res, resultUser)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errUser, 400)
+    }
+  })
+}
+
+/*
  * POST : '/users/register'
  *
  * @desc Login user account
@@ -390,11 +449,11 @@ exports.register = (req, res) => {
   async.waterfall([
     (cb) => {
       usersModel.getUserByEmail(req, req.body.email, (errUser, user) => {
-        if (user) return MiscHelper.notFound(res, 'Email already exists, please choose another email or do forgot password.')
+        if (user && user.length > 0) return MiscHelper.notFound(res, 'Email already exists, please choose another email or do forgot password.')
         cb(errUser)
       })
     },
-    (user, cb) => {
+    (cb) => {
       const salt = MiscHelper.generateSalt(18)
       const passwordHash = MiscHelper.setPassword(req.body.password, salt)
       const data = {
@@ -402,9 +461,12 @@ exports.register = (req, res) => {
         password: passwordHash.passwordHash,
         salt: passwordHash.salt,
         fullname: req.body.fullname,
+        profile_picture: '',
+        token: '',
         phone: req.body.phone,
         status: 1,
-        confirm: 1,
+        confirm: 0,
+        confirm_code: Math.floor((Math.random() * 9999) + 1000),
         created_at: new Date(),
         updated_at: new Date()
       }
