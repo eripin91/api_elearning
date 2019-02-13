@@ -62,10 +62,10 @@ module.exports = {
     })
   },
 
-  getMaterialDetail: (conn, materialId, callback) => {
+  getMaterialDetail: (conn, materialId, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query('SELECT * FROM courses_material_tab WHERE materialid = ? AND status = 1', materialId, (err, rows) => {
+      connection.query('SELECT cm.*, um.is_done_watching FROM courses_material_tab cm LEFT JOIN users_material_progress_tab um ON cm.materialid = um.materialid WHERE cm.materialid = ? AND cm.status = 1 AND um.userId = ?', [materialId, userId], (err, rows) => {
         function sizeCount (size, length) {
           var trigger = 0
           while (size >= length) {

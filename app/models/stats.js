@@ -19,10 +19,10 @@ module.exports = {
   },
   getUserAchievementScore: (conn, classId, callback) => {
     conn.getConnection((errConnection, connection) => {
-      if(errConnection) console.error(errConnection)
-      connection.query(`SELECT us.userid, ct.name, us.score, us.created_at FROM users_scores_tab us JOIN classes_tab ct ON us.parentid = ct.classid WHERE type = 'class' AND parentid = ? ORDER BY score`, [classId], (err, rows) => {
+      if (errConnection) console.error(errConnection)
+      connection.query(`SELECT us.userid, ct.name, us.score, us.created_at FROM users_scores_tab us JOIN classes_tab ct ON us.parentid = ct.classid WHERE type = 'class' AND parentid = ? ORDER BY score DESC`, [classId], (err, rows) => {
         callback(err, rows)
       })
     })
-  },
+  }
 }

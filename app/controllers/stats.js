@@ -81,22 +81,22 @@ exports.getRank = (req, res) => {
       })
     },
     (dataClass, cb) => {
-      if (dataClass.message != undefined) {
+      if (dataClass.message !== undefined) {
         cb(null, dataClass)
       } else {
         async.eachSeries(dataClass.rank_list, (item, next) => {
           statsModel.getUserAchievementScore(req, item.classid, (errUserScore, resultUserScore) => {
             if (errUserScore) console.error(errUserScore)
-            
-            let index = resultUserScore.findIndex(x => x.userid == item.userid)
+
+            let index = resultUserScore.findIndex(x => x.userid === item.userid)
             let date = new Date(resultUserScore[index].created_at)
-            const months = ["JAN", "FEB", "MAR","APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
-            
+            const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+
             item.class_name = resultUserScore[index].name
             item.message = 'Peringkat ' + index + ' di Kelas ' + item.class_name
 
             item.created_at = date.getDate() + ' ' + months[date.getMonth()] + ' ' + date.getFullYear()
-              next()
+            next()
           })
         }, err => {
           redisCache.setex(key, 81600, dataClass)
@@ -111,9 +111,7 @@ exports.getRank = (req, res) => {
       return MiscHelper.errorCustomStatus(res, errUserScore, 400)
     }
   })
-
 }
-
 
 exports.getRankLimit = (req, res) => {
   req.checkParams('userId', 'userId is required').notEmpty().isInt()
@@ -149,22 +147,22 @@ exports.getRankLimit = (req, res) => {
       })
     },
     (dataClass, cb) => {
-      if (dataClass.message != undefined) {
+      if (dataClass.message !== undefined) {
         cb(null, dataClass)
       } else {
         async.eachSeries(dataClass.rank_list, (item, next) => {
           statsModel.getUserAchievementScore(req, item.classid, (errUserScore, resultUserScore) => {
             if (errUserScore) console.error(errUserScore)
-            
-            let index = resultUserScore.findIndex(x => x.userid == item.userid)
+
+            let index = resultUserScore.findIndex(x => x.userid === item.userid)
             let date = new Date(resultUserScore[index].created_at)
-            const months = ["JAN", "FEB", "MAR","APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
-            
+            const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+
             item.class_name = resultUserScore[index].name
             item.message = 'Peringkat ' + index + ' di Kelas ' + item.class_name
 
             item.created_at = date.getDate() + ' ' + months[date.getMonth()] + ' ' + date.getFullYear()
-              next()
+            next()
           })
         }, err => {
           redisCache.setex(key, 81600, dataClass)
@@ -179,5 +177,4 @@ exports.getRankLimit = (req, res) => {
       return MiscHelper.errorCustomStatus(res, errUserScore, 400)
     }
   })
-
 }

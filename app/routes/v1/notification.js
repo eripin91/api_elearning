@@ -1,4 +1,4 @@
-/* global AssessmentControllers */
+/* global NotificationControllers */
 
 'use strict'
 

@@ -20,7 +20,7 @@ exports.get = (req, res) => {
         } else {
           cb(null)
         }
-      }) 
+      })
     },
     (cb) => {
       notificationModel.get(req, req.params.userId, (errNorification, resultNotification) => {
@@ -31,7 +31,7 @@ exports.get = (req, res) => {
     if (!errNorification) {
       return MiscHelper.responses(res, resultNotification)
     } else {
-      return MiscHelper.errorCustomStatus(err, errNorification, 400)
+      return MiscHelper.errorCustomStatus(res, errNorification, 400)
     }
   })
 }
