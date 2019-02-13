@@ -33,9 +33,7 @@ exports.get = (req, res) => {
           return MiscHelper.errorCustomStatus(res, { message: 'Tidak ada course untuk kelas ini' })
         } else {
           resultCourses.course.map((course) => {
-            let minutes = Math.floor(course.durasi / 60)
-            let second = course.durasi - (minutes * 60)
-            course.durasi = minutes + ':' + second
+            course.durasi = MiscHelper.convertTime(course.durasi)
             if (course.is_completed === null) {
               course.is_completed = 0
             }
@@ -220,13 +218,9 @@ exports.materialDetail = (req, res) => {
     },
     (cb) => {
       coursesModel.getMaterialDetail(req, req.params.materialDetailId, (errMaterialDetail, resultMaterialDetail) => {
-        let minutes = Math.floor(resultMaterialDetail.duration / 60)
-        let second = resultMaterialDetail.duration - (minutes * 60)
-        resultMaterialDetail.duration = minutes + ':' + second
+        resultMaterialDetail.duration = MiscHelper.convertTime(resultMaterialDetail.duration)
         resultMaterialDetail.next.map((result) => {
-          minutes = Math.floor(result.duration / 60)
-          second = result.duration - (minutes * 60)
-          result.duration = minutes + ':' + second
+          result.duration = MiscHelper.convertTime(result.duration)
         })
         cb(errMaterialDetail, resultMaterialDetail)
       })

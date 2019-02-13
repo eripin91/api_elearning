@@ -67,5 +67,11 @@ module.exports = {
   validatePassword: (password) => {
     var patt = /^(?=.*?[A-Z])(?=(.*[a-z]){1,})(?=(.*[\d]){1,})(?=(.*[\W]){1,})(?!.*\s).{6,15}$/
     return patt.test(password)
+  },
+  convertTime: (duration) => {
+    let minutes = Math.floor(duration / 60)
+    let second = duration - (minutes * 60)
+    duration = minutes + ':' + second
+    return duration
   }
 }
