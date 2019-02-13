@@ -232,6 +232,8 @@ exports.insertUserClass = (req, res) => {
         if (err) {
           return MiscHelper.errorCustomStatus(res, err, 400)
         } else {
+          const key = `get-class-detail-${classId}-${userId}`
+          redisCache.del(key)
           cb(null)
         }
       })
