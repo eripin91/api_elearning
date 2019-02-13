@@ -81,7 +81,6 @@ exports.get = (req, res) => {
     },
     (dataStat, cb) => {
       async.eachSeries(dataStat.award, (item, next) => {
-        console.log(dataStat.award)
         statsModel.getUserAchievementScore(req, item.classid, (err, result) => {
           if (err) console.error(err)
           result.map((rank, index) => {
