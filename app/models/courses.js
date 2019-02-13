@@ -217,7 +217,7 @@ module.exports = {
   },
   getTestCourseDetail: (conn, assessmentId, callback) => {
     conn.getConnection((errConnection, connection) => {
-      if(errConnection) console.error(connection)
+      if (errConnection) console.error(connection)
       connection.query(`SELECT COUNT(IF(question_type = 'single-choice', 1, null)) AS single_choice, COUNT(IF(question_type = 'essay', 1, null)) AS essay FROM assessment_detail_tab WHERE assessmentid = ?`, [assessmentId], (err, rows) => {
         callback(err, rows)
       })
@@ -226,7 +226,7 @@ module.exports = {
   checkTestCourseDone: (conn, assessmentId, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       connection.query(`SELECT * FROM users_assessment_tab ua LEFT JOIN assessment_detail_tab ad ON ua.detailassessmentid = ad.detailid WHERE ua.userid = ? AND ad.assessmentid = ?`, [userId, assessmentId], (err, rows) => {
-        if(errConnection) console.log(errConnection)
+        if (errConnection) console.log(errConnection)
         callback(err, rows)
       })
     })

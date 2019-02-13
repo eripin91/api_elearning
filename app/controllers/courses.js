@@ -61,7 +61,7 @@ exports.get = (req, res) => {
       dataCourses.final_assesment_detail = {}
       coursesModel.getTestCourseDetail(req, dataCourses.finalassessmentid, (errAssessment, resultAssessment) => {
         if (errAssessment) console.error(errAssessment)
-        if(_.isEmpty(resultAssessment)) {
+        if (_.isEmpty(resultAssessment)) {
           dataCourses.final_assesment_detail = 'Tidak Ada Assesment'
         } else {
           dataCourses.final_assesment_detail.single_choice = resultAssessment[0].single_choice
@@ -69,11 +69,11 @@ exports.get = (req, res) => {
         }
         cb(errAssessment, dataCourses)
       })
-    }, 
+    },
     (dataCourses, cb) => {
       coursesModel.checkTestCourseDone(req, dataCourses.preassessmentid, req.params.idUser, (errAssessment, resultAssessment) => {
-        if(errAssessment) console.log(errAssessment)
-        if(_.isEmpty(resultAssessment)) {
+        if (errAssessment) console.log(errAssessment)
+        if (_.isEmpty(resultAssessment)) {
           dataCourses.pre_assessment_detail.is_done = 0
         } else {
           dataCourses.pre_assessment_detail.is_done = 1
@@ -83,8 +83,8 @@ exports.get = (req, res) => {
     },
     (dataCourses, cb) => {
       coursesModel.checkTestCourseDone(req, dataCourses.finalassessmentid, req.params.idUser, (errAssessment, resultAssessment) => {
-        if(errAssessment) console.log(errAssessment)
-        if(_.isEmpty(resultAssessment)) {
+        if (errAssessment) console.log(errAssessment)
+        if (_.isEmpty(resultAssessment)) {
           dataCourses.final_assesment_detail.is_done = 0
         } else {
           dataCourses.final_assesment_detail.is_done = 1
@@ -93,13 +93,13 @@ exports.get = (req, res) => {
       })
     }
   ],
-    (errCourses, resultCourses) => {
-      if (!errCourses) {
-        return MiscHelper.responses(res, resultCourses)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errCourses, 400)
-      }
-    })
+  (errCourses, resultCourses) => {
+    if (!errCourses) {
+      return MiscHelper.responses(res, resultCourses)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errCourses, 400)
+    }
+  })
 }
 
 /*
@@ -135,13 +135,13 @@ exports.detail = (req, res) => {
       cb(null, dataDetail)
     }
   ],
-    (errDetail, resultDetail) => {
-      if (!errDetail) {
-        return MiscHelper.responses(res, resultDetail)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errDetail, 400)
-      }
-    })
+  (errDetail, resultDetail) => {
+    if (!errDetail) {
+      return MiscHelper.responses(res, resultDetail)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errDetail, 400)
+    }
+  })
 }
 /*
 * GET : '/detail/idUser/idDetail
@@ -187,13 +187,13 @@ exports.material = (req, res) => {
       cb(null, dataMaterial)
     }
   ],
-    (errMaterial, resultMaterial) => {
-      if (!errMaterial) {
-        return MiscHelper.responses(res, resultMaterial)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errMaterial, 400)
-      }
+  (errMaterial, resultMaterial) => {
+    if (!errMaterial) {
+      return MiscHelper.responses(res, resultMaterial)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errMaterial, 400)
     }
+  }
   )
 }
 
@@ -237,13 +237,13 @@ exports.materialDetail = (req, res) => {
       cb(null, dataMaterialDetail)
     }
   ],
-    (errMaterialDetail, resultMaterialDetail) => {
-      if (!errMaterialDetail) {
-        return MiscHelper.responses(res, resultMaterialDetail)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errMaterialDetail, 400)
-      }
-    })
+  (errMaterialDetail, resultMaterialDetail) => {
+    if (!errMaterialDetail) {
+      return MiscHelper.responses(res, resultMaterialDetail)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errMaterialDetail, 400)
+    }
+  })
 }
 
 /*
