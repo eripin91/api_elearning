@@ -331,6 +331,13 @@ exports.changePassword = (req, res) => {
 
   async.waterfall([
     (cb) => {
+      if (MiscHelper.validatePassword(req.body.password)) {
+        cb(null)
+      } else {
+        return MiscHelper.errorCustomStatus(res, 'Password at least one number and both lower and uppercase letters, special characters, and length min 6 and max 16 characters.', 409)
+      }
+    },
+    (cb) => {
       usersModel.getUserById(req, userId, (errUser, user) => {
         if (!user) return MiscHelper.notFound(res, 'user not found on our database')
         cb(errUser, user)
@@ -448,6 +455,13 @@ exports.setPasswordForgot = (req, res) => {
   }
 
   async.waterfall([
+    (cb) => {
+      if (MiscHelper.validatePassword(req.body.password)) {
+        cb(null)
+      } else {
+        return MiscHelper.errorCustomStatus(res, 'Password at least one number and both lower and uppercase letters, special characters, and length min 6 and max 16 characters.', 409)
+      }
+    },
     (cb) => {
       usersModel.getUserById(req, userId, (errUser, user) => {
         cb(errUser, _.result(user, '[0]'))
@@ -612,8 +626,15 @@ exports.register = (req, res) => {
       }
     },
     (email, cb) => {
+      if (MiscHelper.validatePassword(req.body.password)) {
+        cb(null, email)
+      } else {
+        return MiscHelper.errorCustomStatus(res, 'Password at least one number and both lower and uppercase letters, special characters, and length min 6 and max 16 characters.', 409)
+      }
+    },
+    (email, cb) => {
       usersModel.getUserByEmail(req, email, (errUser, user) => {
-        if (user && user.length > 0) return MiscHelper.notFound(res, 'Email already exists, please choose another email or do forgot password.')
+        if (user && user.length > 0) return MiscHelper.errorCustomStatus(res, 'Email already exists, please choose another email or do forgot password.')
         cb(errUser)
       })
     },

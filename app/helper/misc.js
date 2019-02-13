@@ -63,5 +63,9 @@ module.exports = {
   },
   randomNumber: (length) => {
     return parseInt(Math.floor((Math.random() * 999999) + 1000000).toString().slice(0, length))
+  },
+  validatePassword: (password) => {
+    var patt = /^(?=.*?[A-Z])(?=(.*[a-z]){1,})(?=(.*[\d]){1,})(?=(.*[\W]){1,})(?!.*\s).{6,15}$/
+    return patt.test(password)
   }
 }
