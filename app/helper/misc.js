@@ -60,5 +60,8 @@ module.exports = {
   generateSalt: (length) => {
     const crypto = require('crypto')
     return crypto.randomBytes(Math.ceil(length / 2)).toString('hex').slice(0, length)
+  },
+  randomNumber: (length) => {
+    return parseInt(Math.floor((Math.random() * 999999) + 1000000).toString().slice(0, length))
   }
 }

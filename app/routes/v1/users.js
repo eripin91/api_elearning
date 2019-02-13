@@ -14,6 +14,7 @@ Route
   .post('/register', UsersControllers.register)
   .post('/profile', UsersControllers.profile)
   .post('/confirm', UsersControllers.confirm)
+  .post('/resend-verify', UsersControllers.resendVerify)
   .post('/change-password', UsersControllers.changePassword)
   .post('/forgot-password', UsersControllers.forgotPassword)
   .post('/set-password-forgot', UsersControllers.setPasswordForgot)

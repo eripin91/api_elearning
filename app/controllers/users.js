@@ -403,7 +403,7 @@ exports.forgotPassword = (req, res) => {
       const data = {
         status: 1,
         type: 2,
-        verify_code: Math.floor((Math.random() * 9999) + 1000),
+        verify_code: MiscHelper.randomNumber(4),
         userid: user.userid,
         expired_at: moment(new Date()).add(12, 'hours').format('YYYY-MM-DD HH:mm:ss'),
         created_at: new Date(),
@@ -642,7 +642,7 @@ exports.register = (req, res) => {
       const data = {
         status: 1,
         type: 1,
-        verify_code: Math.floor((Math.random() * 9999) + 1000),
+        verify_code: MiscHelper.randomNumber(4),
         userid: user.id,
         expired_at: moment(new Date()).add(12, 'hours').format('YYYY-MM-DD HH:mm:ss'),
         created_at: new Date(),
@@ -659,6 +659,73 @@ exports.register = (req, res) => {
       return MiscHelper.responses(res, resultUser)
     } else {
       return MiscHelper.errorCustomStatus(res, errUser, 400)
+    }
+  })
+}
+
+/*
+ * POST : '/users/resend-verify'
+ *
+ * @desc Login user account
+ *
+ * @param  {object} req - Parameters for request
+ * @param  {objectId} req.body.email - email account user
+ *
+ * @return {object} Request object
+ */
+
+exports.resendVerify = (req, res) => {
+  req.checkBody('email', 'email is required').notEmpty()
+
+  if (req.validationErrors()) {
+    return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
+  }
+
+  async.waterfall([
+    (cb) => {
+      const email = _.toLower(req.body.email)
+
+      if (isRealEmail(email)) {
+        cb(null, email)
+      } else {
+        return MiscHelper.errorCustomStatus(res, 'Please enter your business email.', 400)
+      }
+    },
+    (email, cb) => {
+      usersModel.getUserByEmail(req, email, (errUser, user) => {
+        if (!user && user.length === 0) return MiscHelper.notFound(res, 'Email is not exists, please choose another email')
+        cb(errUser, _.result(user, '[0]'))
+      })
+    },
+    (user, cb) => {
+      console.log(user)
+      if (user.confirm === 0) {
+        const data = {
+          status: 1,
+          type: 1,
+          verify_code: MiscHelper.randomNumber(4),
+          userid: user.userid,
+          expired_at: moment(new Date()).add(12, 'hours').format('YYYY-MM-DD HH:mm:ss'),
+          created_at: new Date(),
+          updated_at: new Date()
+        }
+
+        usersModel.insertAuth(req, data, (err, insertUser) => {
+          user.verify_code = insertUser.verify_code
+          delete user.password
+          delete user.token
+          delete user.salt
+          cb(err, user)
+        })
+      } else {
+        return MiscHelper.errorCustomStatus(res, 'You already confirm.', 400)
+      }
+    }
+  ], (errVerify, resultVerify) => {
+    if (!errVerify) {
+      return MiscHelper.responses(res, resultVerify)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errVerify, 400)
     }
   })
 }
