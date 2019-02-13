@@ -6,8 +6,7 @@ module.exports = {
       if (errConnection) console.error(errConnection)
       connection.query('SELECT c.* FROM courses_tab c LEFT JOIN classes_tab ct ON c.classid = ct.classid WHERE c.classid = ?', classId, (err, rows) => {
         let data = rows[0]
-        let errror = err
-        if (errror) console.log(errror)
+        if (err) console.log(err)
 
         if (data === undefined) {
           callback(err, data)
@@ -212,6 +211,22 @@ module.exports = {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
       connection.query('SELECT uc.*, ct.name FROM users_classes_tab uc LEFT JOIN classes_tab ct ON uc.classid = ct.classid WHERE uc.userid = ? AND uc.classid = ?', [userId, classId], (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  getTestCourseDetail: (conn, assessmentId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if(errConnection) console.error(connection)
+      connection.query(`SELECT COUNT(IF(question_type = 'single-choice', 1, null)) AS single_choice, COUNT(IF(question_type = 'essay', 1, null)) AS essay FROM assessment_detail_tab WHERE assessmentid = ?`, [assessmentId], (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  checkTestCourseDone: (conn, assessmentId, userId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      connection.query(`SELECT * FROM users_assessment_tab ua LEFT JOIN assessment_detail_tab ad ON ua.detailassessmentid = ad.detailid WHERE ua.userid = ? AND ad.assessmentid = ?`, [userId, assessmentId], (err, rows) => {
+        if(errConnection) console.log(errConnection)
         callback(err, rows)
       })
     })
