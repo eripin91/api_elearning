@@ -16,7 +16,7 @@ const redisCache = require('../libs/RedisCache')
  */
 
 exports.get = (req, res) => {
-  const key = 'get-course-' + req.params.idUser + '-' + req.params.idClass
+  const key = `get-courses:${req.params.idClass}:${new Date().getTime}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, courses => {
@@ -29,10 +29,8 @@ exports.get = (req, res) => {
     },
     (cb) => {
       coursesModel.get(req, req.params.idUser, req.params.idClass, (errCourses, resultCourses) => {
-        // checked if result === undefined
-        if (resultCourses === undefined) {
-          let data = { message: 'tidak ada course untuk class ini' }
-          cb(null, data)
+        if (_.isEmpty(resultCourses)) {
+          return MiscHelper.errorCustomStatus(res, { message: 'Tidak ada course untuk kelas ini' })
         } else {
           resultCourses.course.map((course) => {
             let minutes = Math.floor(course.durasi / 60)
@@ -47,9 +45,52 @@ exports.get = (req, res) => {
       })
     },
     (dataCourses, cb) => {
-      redisCache.setex(key, 600, dataCourses)
-      console.log('process cached')
-      cb(null, dataCourses)
+      dataCourses.pre_assessment_detail = {}
+      coursesModel.getTestCourseDetail(req, dataCourses.preassessmentid, (errAssessment, resultAssessment) => {
+        if (errAssessment) console.error(errAssessment)
+        if (_.isEmpty(resultAssessment)) {
+          dataCourses.pre_assessment_detail = 'Tidak ada Assessment'
+        } else {
+          dataCourses.pre_assessment_detail.single_choice = resultAssessment[0].single_choice
+          dataCourses.pre_assessment_detail.essay = resultAssessment[0].essay
+        }
+        cb(errAssessment, dataCourses)
+      })
+    },
+    (dataCourses, cb) => {
+      dataCourses.final_assesment_detail = {}
+      coursesModel.getTestCourseDetail(req, dataCourses.finalassessmentid, (errAssessment, resultAssessment) => {
+        if (errAssessment) console.error(errAssessment)
+        if (_.isEmpty(resultAssessment)) {
+          dataCourses.final_assesment_detail = 'Tidak Ada Assesment'
+        } else {
+          dataCourses.final_assesment_detail.single_choice = resultAssessment[0].single_choice
+          dataCourses.final_assesment_detail.essay = resultAssessment[0].essay
+        }
+        cb(errAssessment, dataCourses)
+      })
+    },
+    (dataCourses, cb) => {
+      coursesModel.checkTestCourseDone(req, dataCourses.preassessmentid, req.params.idUser, (errAssessment, resultAssessment) => {
+        if (errAssessment) console.log(errAssessment)
+        if (_.isEmpty(resultAssessment)) {
+          dataCourses.pre_assessment_detail.is_done = 0
+        } else {
+          dataCourses.pre_assessment_detail.is_done = 1
+        }
+        cb(errAssessment, dataCourses)
+      })
+    },
+    (dataCourses, cb) => {
+      coursesModel.checkTestCourseDone(req, dataCourses.finalassessmentid, req.params.idUser, (errAssessment, resultAssessment) => {
+        if (errAssessment) console.log(errAssessment)
+        if (_.isEmpty(resultAssessment)) {
+          dataCourses.final_assesment_detail.is_done = 0
+        } else {
+          dataCourses.final_assesment_detail.is_done = 1
+        }
+        cb(errAssessment, dataCourses)
+      })
     }
   ],
   (errCourses, resultCourses) => {
@@ -344,10 +385,10 @@ exports.updateUserCourseMaterial = (req, res) => {
     (cb) => {
       coursesModel.checkUserMaterial(req, req.params.materialId, (errMateri, resultMateri) => {
         if (_.isEmpty(resultMateri) || errMateri) {
-        // jika data tidak ada
+          // jika data tidak ada
           cb(errMateri, 1)
         } else {
-        // jika data ada
+          // jika data ada
           const data = {
             updated_at: new Date()
           }

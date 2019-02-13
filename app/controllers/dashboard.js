@@ -98,12 +98,10 @@ exports.get = (req, res) => {
           if (err) console.error(err)
           result.map((total) => {
             item.courses = total.total_bab
-            console.log(item)
           })
           next()
         })
       }, err => {
-        redisCache.setex(key, 81600, data)
         cb(err, data)
       })
     },
