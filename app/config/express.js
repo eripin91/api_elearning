@@ -22,7 +22,11 @@ module.exports = (app) => {
     bodyParser.json({ limit: '2mb' }),
     bodyParser.urlencoded({ extended: true, limit: '2mb', parameterLimit: 1000 }),
     compression,
-    expressValidator()
+    expressValidator({
+      customValidators: {
+        isMatch: function (param1, param2) { return param1 === param2 }
+      }
+    })
   ]))
 
   if (app.get('env') === 'development') {

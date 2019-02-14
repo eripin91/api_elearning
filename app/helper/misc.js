@@ -46,5 +46,32 @@ module.exports = {
     }
 
     return res.status(resultPrint.status).json(resultPrint)
+  },
+  setPassword: (password, salt) => {
+    const crypto = require('crypto')
+    let hash = crypto.createHmac('sha512', salt)
+    hash.update(password)
+    let value = hash.digest('hex')
+    return {
+      salt: salt,
+      passwordHash: value
+    }
+  },
+  generateSalt: (length) => {
+    const crypto = require('crypto')
+    return crypto.randomBytes(Math.ceil(length / 2)).toString('hex').slice(0, length)
+  },
+  randomNumber: (length) => {
+    return parseInt(Math.floor((Math.random() * 999999) + 1000000).toString().slice(0, length))
+  },
+  validatePassword: (password) => {
+    var patt = /^(?=.*?[A-Z])(?=(.*[a-z]){1,})(?=(.*[\d]){1,})(?=(.*[\W]){1,})(?!.*\s).{6,15}$/
+    return patt.test(password)
+  },
+  convertDuration: (duration) => {
+    let minutes = Math.floor(duration / 60)
+    let second = duration - (minutes * 60)
+    duration = minutes + ':' + second
+    return duration
   }
 }

@@ -20,7 +20,7 @@ const redisCache = require('../libs/RedisCache')
 */
 
 exports.get = (req, res) => {
-  const key = 'get-material-user-' + req.params.userId
+  const key = `get-material-user-:${req.params.userId}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, material => {
@@ -34,11 +34,8 @@ exports.get = (req, res) => {
     (cb) => {
       materialModel.getUserMaterial(req, req.params.userId, (errMaterial, resultMaterial) => {
         resultMaterial.map((result) => {
-          let minutes = Math.floor(result.duration / 60)
-          let second = result.duration - (minutes * 60)
-          result.duration = minutes + ':' + second
+          result.duration = MiscHelper.convertDuration(result.duration)
         })
-        console.log(resultMaterial[0])
         cb(errMaterial, resultMaterial)
       })
     },
@@ -57,13 +54,6 @@ exports.get = (req, res) => {
 }
 
 exports.update = (req, res) => {
-  // req.checkBody('userId', 'userid is Required').notEmpty.isInt()
-  // req.checkBody('materialId', 'materialid is Required').notEmpty.isInt()
-
-  // if (req.validationError()) {
-  //   return MiscHelper.errorCustomStatus(res, req.validationError(true))
-  // }
-
   const userId = req.params.userId
   const materialId = req.params.materialId
   async.waterfall([
@@ -81,8 +71,6 @@ exports.update = (req, res) => {
             Object.assign(data, { is_downloaded: req.body.is_downloaded })
           }
           materialModel.updateUserMaterial(req, resultCheck[0].id, data, (err, resultUpdateMaterial) => {
-            console.log(resultUpdateMaterial)
-
             if (err) {
               cb(err)
             } else {
@@ -111,7 +99,7 @@ exports.update = (req, res) => {
         }
 
         materialModel.insertUserMaterial(req, data, (err, result) => {
-          const key = 'get-material-user-' + req.params.userId
+          const key = `get-material-user-:${req.params.userId}`
           redisCache.del(key)
           const data = {
             userid: req.params.userId,
@@ -122,7 +110,7 @@ exports.update = (req, res) => {
           cb(err, data)
         })
       } else {
-        const key = 'get-material-user-' + req.params.userId
+        const key = `get-material-user-:${req.params.userId}`
         redisCache.del(key)
         const data = {
           userid: req.params.userId,
@@ -145,7 +133,7 @@ exports.update = (req, res) => {
             updated_at: new Date()
           }
           notificationModel.checkerNotification(req, notif.message, (err, result) => {
-            console.log('result adalah ' + result[0], err)
+            if (err) console.error(err)
             if (result[0] === undefined) {
               notificationModel.insert(req, notif, (errNotification, resultNotification) => {
                 console.log(errNotification, resultNotification)
@@ -183,8 +171,6 @@ exports.update = (req, res) => {
             courseModel.checkDetailMaterial(req, req.params.detailId, (err, result) => {
               const key = `get-user-course-detail-$:{req.params.userId}-$:{req.params.detailId}`
               redisCache.del(key)
-              console.log(result)
-
               cb(err, dataDetail)
             })
           }
@@ -205,10 +191,9 @@ exports.update = (req, res) => {
       })
     },
     (dataDetail, cb) => {
-      // update data ke table user_classes
       if (dataDetail.class_completed === 1) {
         courseModel.checkerClassDone(req, req.params.classId, req.params.userId, (err, result) => {
-          if (result.length === 0) {
+          if (_.isEmpty(result)) {
             console.log('User Tidak Memiliki Class Ini' + err)
           } else {
             let data = {
@@ -232,8 +217,6 @@ exports.update = (req, res) => {
                     console.log(errNotification, resultNotification, err)
                     redisCache.del(key)
                   })
-                } else {
-                  console.log('ganteng')
                 }
               })
             })

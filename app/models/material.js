@@ -32,7 +32,6 @@ module.exports = {
   updateUserMaterial: (conn, id, data, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      console.log(data)
       connection.query('UPDATE users_material_progress_tab SET ? WHERE id = ?', [data, id], (errUpdate, resultUpdate) => {
         callback(errUpdate, resultUpdate.affectedRows > 0 ? _.merge(data, { id: id }) : [])
       })

@@ -16,7 +16,7 @@ const redisCache = require('../libs/RedisCache')
  */
 
 exports.get = (req, res) => {
-  const key = 'get-course-' + req.params.idUser + '-' + req.params.idClass
+  const key = `get-courses:${req.params.idClass}:${new Date().getTime}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, courses => {
@@ -29,15 +29,11 @@ exports.get = (req, res) => {
     },
     (cb) => {
       coursesModel.get(req, req.params.idUser, req.params.idClass, (errCourses, resultCourses) => {
-        // checked if result === undefined
-        if (resultCourses === undefined) {
-          let data = { message: 'tidak ada course untuk class ini' }
-          cb(null, data)
+        if (_.isEmpty(resultCourses)) {
+          return MiscHelper.errorCustomStatus(res, { message: 'Tidak ada course untuk kelas ini' })
         } else {
           resultCourses.course.map((course) => {
-            let minutes = Math.floor(course.durasi / 60)
-            let second = course.durasi - (minutes * 60)
-            course.durasi = minutes + ':' + second
+            course.durasi = MiscHelper.convertDuration(course.durasi)
             if (course.is_completed === null) {
               course.is_completed = 0
             }
@@ -47,9 +43,52 @@ exports.get = (req, res) => {
       })
     },
     (dataCourses, cb) => {
-      redisCache.setex(key, 600, dataCourses)
-      console.log('process cached')
-      cb(null, dataCourses)
+      dataCourses.pre_assessment_detail = {}
+      coursesModel.getTestCourseDetail(req, dataCourses.preassessmentid, (errAssessment, resultAssessment) => {
+        if (errAssessment) console.error(errAssessment)
+        if (_.isEmpty(resultAssessment)) {
+          dataCourses.pre_assessment_detail = 'Tidak ada Assessment'
+        } else {
+          dataCourses.pre_assessment_detail.single_choice = resultAssessment[0].single_choice
+          dataCourses.pre_assessment_detail.essay = resultAssessment[0].essay
+        }
+        cb(errAssessment, dataCourses)
+      })
+    },
+    (dataCourses, cb) => {
+      dataCourses.final_assesment_detail = {}
+      coursesModel.getTestCourseDetail(req, dataCourses.finalassessmentid, (errAssessment, resultAssessment) => {
+        if (errAssessment) console.error(errAssessment)
+        if (_.isEmpty(resultAssessment)) {
+          dataCourses.final_assesment_detail = 'Tidak Ada Assesment'
+        } else {
+          dataCourses.final_assesment_detail.single_choice = resultAssessment[0].single_choice
+          dataCourses.final_assesment_detail.essay = resultAssessment[0].essay
+        }
+        cb(errAssessment, dataCourses)
+      })
+    },
+    (dataCourses, cb) => {
+      coursesModel.checkTestCourseDone(req, dataCourses.preassessmentid, req.params.idUser, (errAssessment, resultAssessment) => {
+        if (errAssessment) console.log(errAssessment)
+        if (_.isEmpty(resultAssessment)) {
+          dataCourses.pre_assessment_detail.is_done = 0
+        } else {
+          dataCourses.pre_assessment_detail.is_done = 1
+        }
+        cb(errAssessment, dataCourses)
+      })
+    },
+    (dataCourses, cb) => {
+      coursesModel.checkTestCourseDone(req, dataCourses.finalassessmentid, req.params.idUser, (errAssessment, resultAssessment) => {
+        if (errAssessment) console.log(errAssessment)
+        if (_.isEmpty(resultAssessment)) {
+          dataCourses.final_assesment_detail.is_done = 0
+        } else {
+          dataCourses.final_assesment_detail.is_done = 1
+        }
+        cb(errAssessment, dataCourses)
+      })
     }
   ],
   (errCourses, resultCourses) => {
@@ -112,7 +151,7 @@ exports.detail = (req, res) => {
 * @return {object} Request object
 */
 exports.material = (req, res) => {
-  const key = 'get-user-course-material-' + req.params.idUser + req.params.idDetail
+  const key = `get-user-course-material:${req.params.idUser}:${req.params.idDetail}:${new Date().getTime}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, materials => {
@@ -125,11 +164,8 @@ exports.material = (req, res) => {
     },
     (cb) => {
       coursesModel.getMaterial(req, req.params.idUser, req.params.idDetail, (errMaterial, resultMaterial) => {
-        console.log(resultMaterial)
         resultMaterial.map((result) => {
-          let minutes = Math.floor(result.duration / 60)
-          let second = result.duration - (minutes * 60)
-          result.duration = minutes + ':' + second
+          result.duration = MiscHelper.convertDuration(result.duration)
           if (result.is_downloaded === null) {
             result.is_downloaded = 0
           }
@@ -152,8 +188,7 @@ exports.material = (req, res) => {
     } else {
       return MiscHelper.errorCustomStatus(res, errMaterial, 400)
     }
-  }
-  )
+  })
 }
 
 /*
@@ -166,7 +201,7 @@ exports.material = (req, res) => {
 * @return {object} Request object
 */
 exports.materialDetail = (req, res) => {
-  const key = 'get-course-material-detail-' + req.params.materialDetailId
+  const key = `get-detail-course-material:${req.params.materialDetailId}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, materials => {
@@ -178,14 +213,10 @@ exports.materialDetail = (req, res) => {
       })
     },
     (cb) => {
-      coursesModel.getMaterialDetail(req, req.params.materialDetailId, (errMaterialDetail, resultMaterialDetail) => {
-        let minutes = Math.floor(resultMaterialDetail.duration / 60)
-        let second = resultMaterialDetail.duration - (minutes * 60)
-        resultMaterialDetail.duration = minutes + ':' + second
+      coursesModel.getMaterialDetail(req, req.params.materialDetailId, req.params.userId, (errMaterialDetail, resultMaterialDetail) => {
+        resultMaterialDetail.duration = MiscHelper.convertDuration(resultMaterialDetail.duration)
         resultMaterialDetail.next.map((result) => {
-          minutes = Math.floor(result.duration / 60)
-          second = result.duration - (minutes * 60)
-          result.duration = minutes + ':' + second
+          result.duration = MiscHelper.convertDuration(result.duration)
         })
         cb(errMaterialDetail, resultMaterialDetail)
       })
@@ -344,10 +375,8 @@ exports.updateUserCourseMaterial = (req, res) => {
     (cb) => {
       coursesModel.checkUserMaterial(req, req.params.materialId, (errMateri, resultMateri) => {
         if (_.isEmpty(resultMateri) || errMateri) {
-        // jika data tidak ada
           cb(errMateri, 1)
         } else {
-        // jika data ada
           const data = {
             updated_at: new Date()
           }
@@ -367,41 +396,10 @@ exports.updateUserCourseMaterial = (req, res) => {
       })
     },
     (dataMateri, cb) => {
-      // jika data tidak ada
-      // if (dataMateri === 1) {
-      //   const data = {
-      //     userid: userId,
-      //     materialid: materialId,
-      //     watchingduration: 0,
-      //     is_done_watching: 0,
-      //     is_downloaded: 0,
-      //     status: 1,
-      //     created_at: new Date(),
-      //     updated_at: new Date()
-      //   }
-      //   if (req.body.is_downloaded === undefined) {
-      //     data.is_done_watching = req.body.is_done_watching
-      //   } else if (req.body.is_done_watching === undefined) {
-      //     data.is_downloaded = req.body.is_downloaded
-      //   }
-
-      //   coursesModel.insertUserMaterial(req, data, (err, result) => {
-      //     const key = `get-material-user-$:{req.params.userId}`
-      //     redisCache.del(key)
-      //     cb(err, result)
-      //   })
-      // } else {
-      // jika data ada dia hanya mengirimkan hasil dari function sebelumnya
-      cb(null, dataMateri)
-      // }
-    },
-    (dataMateri, cb) => {
       if (dataMateri.is_done_watching === 1) {
         coursesModel.checkCourseComplete(req, res.params.detailId, (errDetail, resultDetail) => {
           let data = {}
           if (resultDetail.jumlah_materi === resultDetail.user_materi) {
-            console.log('masuk kesini')
-
             data.is_completed = 1
           } else {
             data.is_completed = 0
@@ -413,11 +411,8 @@ exports.updateUserCourseMaterial = (req, res) => {
       }
     },
     (dataMateri, cb) => {
-      console.log('masuk kesini')
-
       if (dataMateri.is_completed === 1) {
         coursesModel.checkUserCourseDetail(req, req.params.userId, req.params.detailId, (err, result) => {
-          console.log('masuk kesini')
           if (_.isEmpty(result) || err) {
             const data = {
               userid: req.params.userId,
@@ -435,7 +430,6 @@ exports.updateUserCourseMaterial = (req, res) => {
           }
         })
       } else if (dataMateri.is_completed === 0) {
-        console.log('masuk kesini')
         const data = {
           userid: req.params.userId,
           detailid: req.params.detailId,
