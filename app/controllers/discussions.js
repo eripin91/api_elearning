@@ -130,7 +130,7 @@ exports.getThreadDetail = (req, res) => {
       })
     },
     (cb) => {
-      discussionsModel.getThreadDetail(req, req.params.discussionId, req.params.userId, req.query.sortBy, req.query.orderBy, (errThreadDetail, resultThreadDetail) => {
+      discussionsModel.getThreadDetail(req, req.params.discussionId, req.query.sortBy, req.query.orderBy, (errThreadDetail, resultThreadDetail) => {
         cb(errThreadDetail, resultThreadDetail)
       })
     },
@@ -183,7 +183,8 @@ exports.insertThreadTitle = (req, res) => {
 
   discussionsModel.insertThreadTitle(req, data, (errInsert, resultInsert) => {
     if (!errInsert) {
-      const key = `get-thread-${req.body.courseId}-${req.body.userId}`
+      // delete redis thread by course
+      const key = `get-thread-${req.params.courseId}`
       redisCache.del(key)
       console.log(`${key} is deleted`)
       return MiscHelper.responses(res, resultInsert)
@@ -223,7 +224,7 @@ exports.insertThreadContent = (req, res) => {
     (cb) => {
       discussionsModel.checkQuestion(req, parentId, (errCheck, resultCheck) => {
         if (_.isEmpty(resultCheck) || (errCheck)) {
-          return MiscHelper.errorCustomStatus(res, errCheck, 400)
+          return MiscHelper.errorCustomStatus(res, { message: 'Question is not found' })
         } else {
           cb(null, resultCheck)
         }
@@ -255,7 +256,7 @@ exports.insertThreadContent = (req, res) => {
       })
     },
     (dataThread, cb) => {
-      const message = `Pertanyaan anda "${dataThread.post_content}" Telah Dibalas Oleh "${dataThread.name}"`
+      const message = `Pertanyaan anda Telah Dibalas Oleh ${dataThread.name}`
 
       const data = {
         userid: dataThread.userid,
@@ -267,6 +268,7 @@ exports.insertThreadContent = (req, res) => {
 
       notificationsModel.insert(req, data, (errInsert, resultInsert) => {
         const key = `get-thread-detail-${parentId}-${userId}-total_like-desc`
+        console.log(key)
         redisCache.del(key)
         cb(errInsert, resultInsert)
       })

@@ -3,7 +3,7 @@
 'use strict'
 
 const async = require('async')
-const materialsModel = require('../models/userMaterial')
+const materialsModel = require('../models/materi')
 const redisCache = require('../libs/RedisCache')
 
 exports.get = (req, res) => {

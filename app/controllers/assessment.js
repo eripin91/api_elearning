@@ -199,7 +199,7 @@ exports.getQuestionsDetail = (req, res) => {
  * GET : '/assessment/get-questions-number/:parentId'
  *
  * @desc Get assessment questions
- *
+ *b
  * @param  {object} req - Parameters for request
  * @param  {objectId} req.params.parentId - Id from course or material
  *
