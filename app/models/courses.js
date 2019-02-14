@@ -63,7 +63,8 @@ module.exports = {
   getMaterialDetail: (conn, materialId, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query('SELECT cm.*, um.is_done_watching FROM courses_material_tab cm LEFT JOIN users_material_progress_tab um ON cm.materialid = um.materialid WHERE cm.materialid = ? AND cm.status = 1 AND um.userId = ?', [materialId, userId], (err, rows) => {
+      connection.query('SELECT cm.*, (SELECT is_done_watching FROM users_material_progress_tab WHERE userid = ? AND materialid = cm.materialid) AS is_done_watching FROM courses_material_tab cm WHERE cm.materialid = ? AND cm.status = 1', [userId, materialId], (err, rows) => {
+        if (err) console.log(err)
         function sizeCount (size, length) {
           var trigger = 0
           while (size >= length) {
@@ -75,14 +76,15 @@ module.exports = {
             trigger: trigger
           }
         }
+        if (rows[0].is_done_watching === null) {
+          rows[0].is_done_watching = 0
+        }
 
         let size, descriptor
         size = sizeCount(rows[0].size, 1024)
         descriptor = ['Byte', 'KB', 'MB', 'GB']
-
         rows[0].size = Math.ceil(size.size) + ' ' + descriptor[size.trigger]
         let data = rows[0]
-        if (err) console.log(err)
         connection.query('SELECT cm.materialid, cd.detailid, cm.name, cm.thumbnails, cm.duration FROM courses_material_tab cm JOIN courses_detail_tab cd ON cm.detailid = cd.detailid WHERE cm.detailid = ? AND cm.materialid > ? LIMIT 3', [data.detailid, data.materialid], (err, result) => {
           data.next = result
           callback(err, data)
