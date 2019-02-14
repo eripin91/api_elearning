@@ -76,7 +76,7 @@ module.exports = {
             trigger: trigger
           }
         }
-        if(rows[0].is_done_watching === null) {
+        if (rows[0].is_done_watching === null) {
           rows[0].is_done_watching = 0
         }
 
