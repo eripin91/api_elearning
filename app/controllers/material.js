@@ -20,7 +20,7 @@ const redisCache = require('../libs/RedisCache')
 */
 
 exports.get = (req, res) => {
-  const key = 'get-material-user-' + req.params.userId
+  const key = `get-material-user-:${req.params.userId}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, material => {
@@ -34,11 +34,8 @@ exports.get = (req, res) => {
     (cb) => {
       materialModel.getUserMaterial(req, req.params.userId, (errMaterial, resultMaterial) => {
         resultMaterial.map((result) => {
-          let minutes = Math.floor(result.duration / 60)
-          let second = result.duration - (minutes * 60)
-          result.duration = minutes + ':' + second
+          result.duration = MiscHelper.convertDuration(result.duration)
         })
-        console.log(resultMaterial[0])
         cb(errMaterial, resultMaterial)
       })
     },
@@ -57,13 +54,6 @@ exports.get = (req, res) => {
 }
 
 exports.update = (req, res) => {
-  // req.checkBody('userId', 'userid is Required').notEmpty.isInt()
-  // req.checkBody('materialId', 'materialid is Required').notEmpty.isInt()
-
-  // if (req.validationError()) {
-  //   return MiscHelper.errorCustomStatus(res, req.validationError(true))
-  // }
-
   const userId = req.params.userId
   const materialId = req.params.materialId
   async.waterfall([
@@ -109,7 +99,7 @@ exports.update = (req, res) => {
         }
 
         materialModel.insertUserMaterial(req, data, (err, result) => {
-          const key = 'get-material-user-' + req.params.userId
+          const key = `get-material-user-:${req.params.userId}`
           redisCache.del(key)
           const data = {
             userid: req.params.userId,
@@ -120,7 +110,7 @@ exports.update = (req, res) => {
           cb(err, data)
         })
       } else {
-        const key = 'get-material-user-' + req.params.userId
+        const key = `get-material-user-:${req.params.userId}`
         redisCache.del(key)
         const data = {
           userid: req.params.userId,
@@ -203,7 +193,7 @@ exports.update = (req, res) => {
     (dataDetail, cb) => {
       if (dataDetail.class_completed === 1) {
         courseModel.checkerClassDone(req, req.params.classId, req.params.userId, (err, result) => {
-          if (result.length === 0) {
+          if (_.isEmpty(result)) {
             console.log('User Tidak Memiliki Class Ini' + err)
           } else {
             let data = {

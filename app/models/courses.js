@@ -31,7 +31,6 @@ module.exports = {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
       connection.query('SELECT cm.materialid, cd.detailid, cm.name, cm.thumbnails, cm.duration, (SELECT b.is_downloaded FROM courses_material_tab a LEFT JOIN users_material_progress_tab b ON a.materialid = b.materialid LEFT JOIN users_tab c ON b.userid = c.userid WHERE c.userid = ? AND b.materialid = cm.materialid) AS is_downloaded, (SELECT b.is_done_watching FROM courses_material_tab a LEFT JOIN users_material_progress_tab b ON a.materialid = b.materialid LEFT JOIN users_tab c ON b.userid = c.userid WHERE c.userid = ? AND b.materialid = cm.materialid) AS is_done_watching FROM courses_material_tab cm LEFT JOIN courses_detail_tab cd ON cm.detailid = cd.detailid LEFT JOIN courses_tab c ON cd.courseid = c.courseid WHERE cd.detailid = ? AND cd.status = 1', [userId, userId, detailId], (err, rows) => {
-        console.log(rows)
         callback(err, rows)
       })
     })
@@ -40,7 +39,7 @@ module.exports = {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
       connection.query('SELECT COUNT(materialid) AS jumlah_materi FROM courses_material_tab WHERE detailid = ?', [detailId], (err, rows) => {
-        console.log(err)
+        if (err) console.error(err)
         let data = rows[0]
         connection.query('SELECT cd.name as nama, COUNT(um.id) AS user_materi, ct.name FROM users_material_progress_tab um LEFT JOIN courses_material_tab cm ON um.materialid = cm.materialid LEFT JOIN users_tab u ON um.userid = u.userid LEFT JOIN courses_detail_tab cd ON cm.detailid = cd.detailid LEFT JOIN courses_tab c ON c.courseid = cd.courseid LEFT JOIN classes_tab ct ON ct.classid = c.classid WHERE cd.detailid = ? AND um.is_done_watching = 1', detailId, (err, result) => {
           data.user_materi = result[0].user_materi
@@ -82,10 +81,8 @@ module.exports = {
         descriptor = ['Byte', 'KB', 'MB', 'GB']
 
         rows[0].size = Math.ceil(size.size) + ' ' + descriptor[size.trigger]
-        console.log(rows[0].size)
         let data = rows[0]
-        let errror = err
-        if (errror) console.log(errror)
+        if (err) console.log(err)
         connection.query('SELECT cm.materialid, cd.detailid, cm.name, cm.thumbnails, cm.duration FROM courses_material_tab cm JOIN courses_detail_tab cd ON cm.detailid = cd.detailid WHERE cm.detailid = ? AND cm.materialid > ? LIMIT 3', [data.detailid, data.materialid], (err, result) => {
           data.next = result
           callback(err, data)
@@ -150,8 +147,6 @@ module.exports = {
     })
   },
   updateUserMaterial: (conn, id, data, callback) => {
-    console.log(data)
-    console.log(id)
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
       connection.query('UPDATE users_material_progress_tab SET ? WHERE id = ?', [data, id], (err, rows) => {
@@ -195,13 +190,10 @@ module.exports = {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
       connection.query('SELECT ct.name, a.courseid, (SELECT COUNT(cd.detailid) FROM courses_tab c JOIN courses_detail_tab cd ON c.courseid = cd.courseid WHERE c.courseid=a.courseid) AS jumlah_total FROM classes_tab ct LEFT JOIN courses_tab a on ct.classid = a.classid WHERE a.classid = ?', classId, (err, result) => {
-        console.log(err)
-        console.log(result[0].courseid)
-
+        if (err) console.log(err)
         let data = result[0]
         connection.query('SELECT COUNT(id) as user_progress FROM users_course_detail_tab ud left JOIN courses_detail_tab cd ON cd.detailid = ud.detailid LEFT JOIN users_tab u ON u.userid = ud.userid WHERE cd.courseid = 1 AND u.userid = 1 ', [result[0].courseid, userId], (err, rows) => {
           data.user_progress = rows[0].user_progress
-          console.log(data)
           callback(err, data)
         })
       })
