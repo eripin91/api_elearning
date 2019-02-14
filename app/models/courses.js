@@ -67,8 +67,12 @@ module.exports = {
         function sizeCount (size, length) {
           var trigger = 0
           while (size >= length) {
-            trigger += 1
-            size = size / length
+            if(_.isEmpty(size)) {
+              size = 0
+            } else {
+              trigger += 1
+              size = size / length
+            }
           }
           return {
             size: size,

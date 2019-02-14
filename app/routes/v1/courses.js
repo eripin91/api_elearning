@@ -1,11 +1,12 @@
-/* global CoursesControllers */
+/* global CoursesControllers AuthHelper */
 
 'use strict'
 
 var Route = express.Router()
 
 Route
-  .get('/:idUser/:idClass/', CoursesControllers.get)
+  // .all('/*', AuthHelper.requiresAuthorization)
+  .get('/:idUser/:idClass/', AuthHelper.requiresAuthorization, AuthHelper.requiresAccessToken, CoursesControllers.get)
   .get('/course/:idCourse/', CoursesControllers.detail)
   .get('/get/:idUser/:idDetail', CoursesControllers.material)
   .get('/get/detail/material/:userId/:materialDetailId', CoursesControllers.materialDetail)
