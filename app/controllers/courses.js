@@ -33,11 +33,7 @@ exports.get = (req, res) => {
           return MiscHelper.errorCustomStatus(res, { message: 'Tidak ada course untuk kelas ini' })
         } else {
           resultCourses.course.map((course) => {
-<<<<<<< HEAD
-            course.durasi = MiscHelper.convertTime(course.durasi)
-=======
             course.durasi = MiscHelper.convertDuration(course.durasi)
->>>>>>> course-4
             if (course.is_completed === null) {
               course.is_completed = 0
             }
@@ -218,17 +214,10 @@ exports.materialDetail = (req, res) => {
       })
     },
     (cb) => {
-<<<<<<< HEAD
-      coursesModel.getMaterialDetail(req, req.params.materialDetailId, (errMaterialDetail, resultMaterialDetail) => {
-        resultMaterialDetail.duration = MiscHelper.convertTime(resultMaterialDetail.duration)
-        resultMaterialDetail.next.map((result) => {
-          result.duration = MiscHelper.convertTime(result.duration)
-=======
       coursesModel.getMaterialDetail(req, req.params.materialDetailId, req.params.userId, (errMaterialDetail, resultMaterialDetail) => {
         resultMaterialDetail.duration = MiscHelper.convertDuration(resultMaterialDetail.duration)
         resultMaterialDetail.next.map((result) => {
           result.duration = MiscHelper.convertDuration(result.duration)
->>>>>>> course-4
         })
         cb(errMaterialDetail, resultMaterialDetail)
       })
