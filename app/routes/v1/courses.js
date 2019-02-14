@@ -12,7 +12,7 @@ Route
   .get('/get/detail/material/:userId/:materialDetailId', CoursesControllers.materialDetail)
   .get('/detail/:idDetail/material/:materialDetailId', CoursesControllers.nextMaterial)
   .get('/detailcomplete/:userId/:detailId', CoursesControllers.getUserCourseDetail)
-  .post('/courseMaterial/:userId/:detailId/:materialId', CoursesControllers.updateUserCourseMaterial)
-  .patch('/detailcomplete/:userId/:detailId', CoursesControllers.updateUserCourseDetail)
+  // .post('/courseMaterial/:userId/:detailId/:materialId', CoursesControllers.updateUserCourseMaterial)
+  // .patch('/detailcomplete/:userId/:detailId', CoursesControllers.updateUserCourseDetail)
 
 module.exports = Route
