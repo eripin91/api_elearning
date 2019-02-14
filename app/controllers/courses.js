@@ -213,7 +213,7 @@ exports.materialDetail = (req, res) => {
       })
     },
     (cb) => {
-      coursesModel.getMaterialDetail(req, req.params.materialDetailId, (errMaterialDetail, resultMaterialDetail) => {
+      coursesModel.getMaterialDetail(req, req.params.materialDetailId, req.params.userId, (errMaterialDetail, resultMaterialDetail) => {
         let minutes = Math.floor(resultMaterialDetail.duration / 60)
         let second = resultMaterialDetail.duration - (minutes * 60)
         resultMaterialDetail.duration = minutes + ':' + second

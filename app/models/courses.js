@@ -59,7 +59,6 @@ module.exports = {
       })
     })
   },
-
   getMaterialDetail: (conn, materialId, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
