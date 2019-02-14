@@ -220,7 +220,7 @@ module.exports = {
   checkTestCourseDone: (conn, assessmentId, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       connection.query(`SELECT * FROM users_assessment_tab ua LEFT JOIN assessment_detail_tab ad ON ua.detailassessmentid = ad.detailid WHERE ua.userid = ? AND ad.assessmentid = ?`, [userId, assessmentId], (err, rows) => {
-        if (errConnection) console.log(errConnection)
+        if (errConnection) console.error(errConnection)
         callback(err, rows)
       })
     })

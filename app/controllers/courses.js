@@ -164,7 +164,6 @@ exports.material = (req, res) => {
     },
     (cb) => {
       coursesModel.getMaterial(req, req.params.idUser, req.params.idDetail, (errMaterial, resultMaterial) => {
-        console.log(resultMaterial)
         resultMaterial.map((result) => {
           result.duration = MiscHelper.convertDuration(result.duration)
           if (result.is_downloaded === null) {
