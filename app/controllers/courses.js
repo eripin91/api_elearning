@@ -164,7 +164,6 @@ exports.material = (req, res) => {
     },
     (cb) => {
       coursesModel.getMaterial(req, req.params.idUser, req.params.idDetail, (errMaterial, resultMaterial) => {
-        console.log(resultMaterial)
         resultMaterial.map((result) => {
           let minutes = Math.floor(result.duration / 60)
           let second = result.duration - (minutes * 60)
