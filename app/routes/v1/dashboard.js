@@ -1,4 +1,4 @@
-/* global DashboardControllers */
+/* global DashboardControllers AuthHelper */
 
 'use strict'
 
