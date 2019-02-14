@@ -151,7 +151,7 @@ exports.detail = (req, res) => {
 * @return {object} Request object
 */
 exports.material = (req, res) => {
-  const key = `get-user-course-material:${req.params.idUser}:${req.params.idDetail}:${new Date().getTime}` 
+  const key = `get-user-course-material:${req.params.idUser}:${req.params.idDetail}:${new Date().getTime}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, materials => {
@@ -202,7 +202,7 @@ exports.material = (req, res) => {
 * @return {object} Request object
 */
 exports.materialDetail = (req, res) => {
-  const key = `get-detail-course-material:${req.params.materialDetailId}` 
+  const key = `get-detail-course-material:${req.params.materialDetailId}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, materials => {

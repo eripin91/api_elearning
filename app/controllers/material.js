@@ -20,7 +20,7 @@ const redisCache = require('../libs/RedisCache')
 */
 
 exports.get = (req, res) => {
-  const key = `get-material-user-:${req.params.userId}` 
+  const key = `get-material-user-:${req.params.userId}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, material => {
@@ -99,7 +99,7 @@ exports.update = (req, res) => {
         }
 
         materialModel.insertUserMaterial(req, data, (err, result) => {
-          const key = `get-material-user-:${req.params.userId}` 
+          const key = `get-material-user-:${req.params.userId}`
           redisCache.del(key)
           const data = {
             userid: req.params.userId,
