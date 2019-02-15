@@ -214,12 +214,10 @@ exports.materialDetail = (req, res) => {
     },
     (cb) => {
       coursesModel.getMaterialDetail(req, req.params.materialDetailId, req.params.userId, (errMaterialDetail, resultMaterialDetail) => {
-        let minutes = Math.floor(resultMaterialDetail.duration / 60)
-        let second = resultMaterialDetail.duration - (minutes * 60)
-        resultMaterialDetail.duration = minutes + ':' + second
+        resultMaterialDetail.duration = MiscHelper.convertDuration(resultMaterialDetail.duration)
         resultMaterialDetail.next.map((result) => {
-          minutes = Math.floor(result.duration / 60)
-          second = result.duration - (minutes * 60)
+          let minutes = Math.floor(result.duration / 60)
+          let second = result.duration - (minutes * 60)
           result.duration = minutes + ':' + second
         })
         cb(errMaterialDetail, resultMaterialDetail)
@@ -336,6 +334,7 @@ exports.getUserCourseDetail = (req, res) => {
     }
   })
 }
+
 exports.updateUserCourseDetail = (req, res) => {
   const userId = req.params.userId
   const detailId = req.params.detailId
