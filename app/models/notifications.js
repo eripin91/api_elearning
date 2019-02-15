@@ -30,5 +30,14 @@ module.exports = {
         callback(err, rows)
       })
     })
+  },
+  getNotification: (conn, userId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+
+      connection.query(`SELECT * FROM notification_tab WHERE userid = ? ORDER BY created_at DESC`, userId, (err, rows) => {
+        callback(err, rows)
+      })
+    })
   }
 }
