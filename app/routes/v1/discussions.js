@@ -1,14 +1,15 @@
-/* global DiscussionsControllers */
+/* global DiscussionsControllers AuthHelper */
 
 'use strict'
 
 var Route = express.Router()
 
 Route
-  .get('/get/:courseId/:userId', DiscussionsControllers.getThread)
-  .get('/detail/:discussionId/:userId', DiscussionsControllers.getThreadDetail)
-  .put('/', DiscussionsControllers.insertThreadTitle)
-  .put('/reply', DiscussionsControllers.insertThreadContent)
-  .post('/like', DiscussionsControllers.like)
+  .all('/*', AuthHelper.requiresAuthorization)
+  .get('/get/:courseId/:userId', AuthHelper.requiresAccessToken, DiscussionsControllers.getThread)
+  .get('/detail/:discussionId/:userId', AuthHelper.requiresAccessToken, DiscussionsControllers.getThreadDetail)
+  .put('/', AuthHelper.requiresAccessToken, DiscussionsControllers.insertThreadTitle)
+  .put('/reply', AuthHelper.requiresAccessToken, DiscussionsControllers.insertThreadContent)
+  .post('/like', AuthHelper.requiresAccessToken, DiscussionsControllers.like)
 
 module.exports = Route
