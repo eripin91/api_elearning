@@ -212,13 +212,13 @@ exports.update = (req, res) => {
     }
 
   ],
-    (errMaterial, resultMaterial) => {
-      if (!errMaterial) {
-        return MiscHelper.responses(res, resultMaterial)
-      } else {
-        return MiscHelper.errorCustomStatus(res, errMaterial, 400)
-      }
-    })
+  (errMaterial, resultMaterial) => {
+    if (!errMaterial) {
+      return MiscHelper.responses(res, resultMaterial)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errMaterial, 400)
+    }
+  })
 }
 
 exports.updateUserDownloadMaterial = (req, res) => {
