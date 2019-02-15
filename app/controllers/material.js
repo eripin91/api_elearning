@@ -63,15 +63,14 @@ exports.update = (req, res) => {
           cb(errCheck, 1)
         } else {
           const data = {
-            is_done_watching: 1,
+            is_done_watching: req.body.is_done_watching,
             updated_at: new Date()
           }
-
           materialModel.updateUserMaterial(req, resultCheck[0].id, data, (err, resultUpdateMaterial) => {
             if (err) {
               return MiscHelper.errorCustomStatus(res, err, 400)
             } else {
-              cb(err, resultCheck)
+              cb(err, resultCheck[0])
             }
           })
         }
@@ -91,23 +90,21 @@ exports.update = (req, res) => {
         }
 
         materialModel.insertUserMaterial(req, data, (err, result) => {
-          const key = `get-material-user-:${req.params.userId}:${new Date().getTime()}`
-          redisCache.del(key)
           const data = {
             userid: req.params.userId,
             materialid: req.params.materialId,
             is_material_complete: req.body.is_done_watching,
             detailid: req.params.detailId
           }
+          const key = `get-material-user-:${req.params.userId}:${new Date().getTime()}`
+          redisCache.del(key)
           cb(err, data)
         })
       } else {
-        const key = `get-material-user-:${req.params.userId}:${new Date().getTime()}`
-        redisCache.del(key)
         const data = {
           userid: req.params.userId,
           materialid: req.params.materialId,
-          is_material_complete: trigger[0].is_done_watching,
+          is_material_complete: req.body.is_done_watching,
           detailid: req.params.detailId
         }
         cb(null, data)
@@ -132,8 +129,6 @@ exports.update = (req, res) => {
                 const key = `get-user-notification-course:${req.params.userId}:${new Date().getTime()}`
                 redisCache.del(key)
               })
-            } else {
-              console.log('err')
             }
           })
         } else {
@@ -161,8 +156,6 @@ exports.update = (req, res) => {
             })
           } else {
             courseModel.checkDetailMaterial(req, req.params.detailId, (err, result) => {
-              const key = `get-user-course-detail-:${req.params.userId}-:${req.params.detailId}`
-              redisCache.del(key)
               cb(err, dataDetail)
             })
           }
@@ -219,13 +212,13 @@ exports.update = (req, res) => {
     }
 
   ],
-  (errMaterial, resultMaterial) => {
-    if (!errMaterial) {
-      return MiscHelper.responses(res, resultMaterial)
-    } else {
-      return MiscHelper.errorCustomStatus(res, errMaterial, 400)
-    }
-  })
+    (errMaterial, resultMaterial) => {
+      if (!errMaterial) {
+        return MiscHelper.responses(res, resultMaterial)
+      } else {
+        return MiscHelper.errorCustomStatus(res, errMaterial, 400)
+      }
+    })
 }
 
 exports.updateUserDownloadMaterial = (req, res) => {
