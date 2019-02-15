@@ -20,7 +20,7 @@ const redisCache = require('../libs/RedisCache')
 */
 
 exports.get = (req, res) => {
-  const key = `get-material-user-:${req.params.userId}`
+  const key = `get-material-user-:${req.params.userId}:${new Date().getTime()}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, material => {
@@ -63,16 +63,13 @@ exports.update = (req, res) => {
           cb(errCheck, 1)
         } else {
           const data = {
+            is_done_watching: 1,
             updated_at: new Date()
           }
-          if (req.body.is_downloaded === undefined) {
-            Object.assign(data, { is_done_watching: req.body.is_done_watching })
-          } else if (req.body.is_done_watching === undefined) {
-            Object.assign(data, { is_downloaded: req.body.is_downloaded })
-          }
+
           materialModel.updateUserMaterial(req, resultCheck[0].id, data, (err, resultUpdateMaterial) => {
             if (err) {
-              cb(err)
+              return MiscHelper.errorCustomStatus(res, err, 400)
             } else {
               cb(err, resultCheck)
             }
@@ -86,20 +83,15 @@ exports.update = (req, res) => {
           userid: userId,
           materialid: materialId,
           watchingduration: 0,
-          is_done_watching: 0,
+          is_done_watching: 1,
           is_downloaded: 0,
           status: 1,
           created_at: new Date(),
           updated_at: new Date()
         }
-        if (req.body.is_downloaded === undefined) {
-          data.is_done_watching = req.body.is_done_watching
-        } else if (req.body.is_done_watching === undefined) {
-          data.is_downloaded = req.body.is_downloaded
-        }
 
         materialModel.insertUserMaterial(req, data, (err, result) => {
-          const key = `get-material-user-:${req.params.userId}`
+          const key = `get-material-user-:${req.params.userId}:${new Date().getTime()}`
           redisCache.del(key)
           const data = {
             userid: req.params.userId,
@@ -110,7 +102,7 @@ exports.update = (req, res) => {
           cb(err, data)
         })
       } else {
-        const key = `get-material-user-:${req.params.userId}`
+        const key = `get-material-user-:${req.params.userId}:${new Date().getTime()}`
         redisCache.del(key)
         const data = {
           userid: req.params.userId,
@@ -137,7 +129,7 @@ exports.update = (req, res) => {
             if (result[0] === undefined) {
               notificationModel.insert(req, notif, (errNotification, resultNotification) => {
                 console.log(errNotification, resultNotification)
-                const key = `get-user-notification-course$:{req.params.userId}`
+                const key = `get-user-notification-course:${req.params.userId}:${new Date().getTime()}`
                 redisCache.del(key)
               })
             } else {
@@ -163,13 +155,13 @@ exports.update = (req, res) => {
               updated_at: new Date()
             }
             courseModel.insertDetailMaterial(req, data, (err, result) => {
-              const key = `get-user-course-detail-$:{req.params.userId}-$:{req.params.detailId}`
+              const key = `get-user-course-detail-:${req.params.userId}-:${req.params.detailId}:${new Date().getTime()}`
               redisCache.del(key)
               cb(err, dataDetail)
             })
           } else {
             courseModel.checkDetailMaterial(req, req.params.detailId, (err, result) => {
-              const key = `get-user-course-detail-$:{req.params.userId}-$:{req.params.detailId}`
+              const key = `get-user-course-detail-:${req.params.userId}-:${req.params.detailId}`
               redisCache.del(key)
               cb(err, dataDetail)
             })
@@ -202,6 +194,7 @@ exports.update = (req, res) => {
               updated_at: new Date()
             }
             classesModel.updateUserClass(req, data, result[0].id, (err, resultUpdate) => {
+              if (err) console.log(err, resultUpdate)
               let notif = {
                 userid: req.params.userId,
                 message: 'Selamat anda telah menyelesaikan semua materi pada class ' + result[0].name,
@@ -209,11 +202,10 @@ exports.update = (req, res) => {
                 created_at: new Date(),
                 updated_at: new Date()
               }
-              console.log(err, resultUpdate)
               notificationModel.checkerNotification(req, notif.message, (err, result) => {
                 if (result[0] === undefined) {
                   notificationModel.insert(req, notif, (errNotification, resultNotification) => {
-                    const key = `get-user-notification-classes-$:{req.params.userId}`
+                    const key = `get-user-notification-classes-:${req.params.userId}:${new Date().getTime()}`
                     console.log(errNotification, resultNotification, err)
                     redisCache.del(key)
                   })
@@ -259,7 +251,7 @@ exports.updateUserDownloadMaterial = (req, res) => {
               cb(err)
             } else {
               notificationModel.insert(req, notif, (errNotification, resultNotification) => {
-                const key = `get-user-notification-materials-$:{req.params.userId}`
+                const key = `get-user-notification-materials-:${req.params.userId}:${new Date().getTime()}`
                 console.log(errNotification, resultNotification)
                 redisCache.del(key)
               })
@@ -290,11 +282,11 @@ exports.updateUserDownloadMaterial = (req, res) => {
             updated_at: new Date()
           }
           notificationModel.insert(req, notif, (errNotification, resultNotification) => {
-            const key = `get-user-notification-materials-$:{req.params.userId}`
+            const key = `get-user-notification-materials-:${req.params.userId}:${new Date().getTime()}`
             console.log(errNotification, resultNotification)
             redisCache.del(key)
           })
-          const key = `get-material-user-$:{req.params.userId}`
+          const key = `get-material-user-:${req.params.userId}:${new Date().getTime()}`
           redisCache.del(key)
           cb(err, result)
         })
