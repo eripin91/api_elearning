@@ -166,7 +166,7 @@ exports.login = (req, res) => {
  */
 
 exports.logout = (req, res) => {
-  const userId = req.headers['e-learning-user']
+  const userId = parseInt(req.headers['x-telkom-user'])
 
   if (!userId) return MiscHelper.errorCustomStatus(res, 'UserID required.', 400)
 
