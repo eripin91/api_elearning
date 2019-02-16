@@ -284,13 +284,31 @@ exports.answer = (req, res) => {
 
   async.waterfall([
     (cb) => {
+      assessmentModel.getQuestionsByDetailId(req, detailAssessmentId, (err, question) => {
+        if (_.result(question, '[0].detailid')) {
+          cb(err, _.result(question, '[0]', {}))
+        } else {
+          return MiscHelper.errorCustomStatus(res, 'Question not found.', 409)
+        }
+      })
+    },
+    (question, cb) => {
       assessmentModel.checkUserAlreadyAnswer(req, userId, detailAssessmentId, parentId, (errCheck, resultCheck) => {
         if (_.isEmpty(resultCheck) || errCheck) {
-          cb(errCheck)
+          cb(errCheck, question)
         } else {
           const data = {
             answer: answer,
+            is_correct: 0,
             updated_at: new Date()
+          }
+
+          if (question.question_type === 'single-choice') {
+            if (parseInt(question.answer) === parseInt(answer)) {
+              data.is_correct = 1
+            }
+          } else {
+            data.is_correct = 1
           }
 
           assessmentModel.updateUserAnswer(req, resultCheck[0].id, data, (err, resultUpdateAnswer) => {
@@ -303,15 +321,24 @@ exports.answer = (req, res) => {
         }
       })
     },
-    (cb) => {
+    (question, cb) => {
       const data = {
         userid: userId,
         detailassessmentid: detailAssessmentId,
         parentid: parentId,
         answer: answer,
+        is_correct: 0,
         status: 1,
         created_at: new Date(),
         updated_at: new Date()
+      }
+
+      if (question.question_type === 'single-choice') {
+        if (parseInt(question.answer) === parseInt(answer)) {
+          data.is_correct = 1
+        }
+      } else {
+        data.is_correct = 1
       }
 
       assessmentModel.insertUserAnswer(req, data, (err, result) => {
@@ -330,12 +357,79 @@ exports.answer = (req, res) => {
 }
 
 /*
+ * GET : '/assessment/result/:parentId'
+ *
+ * @desc Get rank by class
+ *
+ * @param  {object} req - Parameters for request
+ * @param  {objectId} req.params.parentId - Id from course or material
+ *
+ * @return {object} Request object
+ */
+
+exports.getAssessmentResult = (req, res) => {
+  req.checkParams('parentId', 'parentId is required').notEmpty().isInt()
+
+  if (req.validationErrors()) {
+    return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
+  }
+
+  const userId = req.headers['x-telkom-user']
+  const key = `get-assessment-result:${userId}:${req.params.parentId}:${new Date().getTime()}` // disabled cache
+
+  async.waterfall([
+    (cb) => {
+      redisCache.get(key, users => {
+        if (users) {
+          return MiscHelper.responses(res, users)
+        } else {
+          cb(null)
+        }
+      })
+    },
+    (cb) => {
+      assessmentModel.getAssessmentResult(req, userId, req.params.parentId, (errCheck, resultCheck) => {
+        cb(errCheck, resultCheck)
+      })
+    },
+    (result, cb) => {
+      const totalQuestion = result.length
+      let totalCorrect = 0
+
+      for (let i = 0; i < totalQuestion; ++i) {
+        if (result[i].is_correct === 1) {
+          totalCorrect += 1
+        }
+      }
+
+      const resultAssessment = {
+        totalQuestion: result.length,
+        score: Math.ceil((100 / totalQuestion) * totalCorrect),
+        stats: {
+          correct: totalCorrect,
+          incorrect: totalQuestion - totalCorrect
+        }
+      }
+
+      redisCache.setex(key, 81600, resultAssessment)
+      cb(null, resultAssessment)
+    }
+  ], (errAssessment, resultAssessment) => {
+    if (!errAssessment) {
+      return MiscHelper.responses(res, resultAssessment)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errAssessment, 400)
+    }
+  })
+}
+
+/*
  * GET : '/assessment/rank/:classId'
  *
  * @desc Get rank by class
  *
  * @param  {object} req - Parameters for request
- * @param  {objectId} req.params.classId - Id from course or material
+ * @param  {objectId} req.params.classId - Id class
  *
  * @return {object} Request object
  */
@@ -347,7 +441,7 @@ exports.getRank = (req, res) => {
     return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
   }
 
-  const userId = req.headers['e-learning-user']
+  const userId = req.headers['x-telkom-user']
   const key = `get-assessment-rank:${req.params.classId}:${new Date().getTime()}` // disabled cache
   async.waterfall([
     (cb) => {
@@ -361,17 +455,20 @@ exports.getRank = (req, res) => {
     },
     (cb) => {
       classesModel.getRank(req, req.params.classId, (errRank, resultRank) => {
-        cb(errRank, resultRank)
-      })
-    },
-    (dataRank, cb) => {
-      classesModel.getUserRank(req, userId, (errRank, userRank) => {
-        const rank = {
-          rank: dataRank,
-          user: _.result(userRank, '[0]')
+        let userRank = {}
+        const ranks = []
+        for (let i = 0; i < resultRank.length; ++i) {
+          if (parseInt(userId) === parseInt(resultRank[i].userid)) {
+            userRank = _.merge(resultRank[i], { rank: (i + 1) })
+          }
+          ranks.push(_.merge(resultRank[i], { rank: (i + 1) }))
         }
-        redisCache.setex(key, 81600, rank)
-        cb(errRank, rank)
+        const classRank = {
+          ranks: ranks,
+          user: userRank
+        }
+        redisCache.setex(key, 81600, classRank)
+        cb(errRank, classRank)
       })
     }
   ], (errRank, resultRank) => {

@@ -11,6 +11,7 @@ Route
   .get('/get-questions-number/:parentId/:userId', AssessmentControllers.getQuestionsNumber)
   .post('/get-questions-detail/:parentId', AssessmentControllers.getQuestionsDetail)
   .get('/rank/:classId', AssessmentControllers.getRank)
+  .get('/result/:parentId', AssessmentControllers.getAssessmentResult)
   .post('/answer', AssessmentControllers.answer)
 
 module.exports = Route
