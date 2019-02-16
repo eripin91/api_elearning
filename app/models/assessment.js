@@ -27,6 +27,14 @@ module.exports = {
       })
     })
   },
+  getQuestionsByDetailId: (conn, detailId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      connection.query(`SELECT a.detailid,a.answer,a.question_type FROM assessment_detail_tab a JOIN assessment_tab b ON a.assessmentid=b.assessmentid WHERE a.detailid = ?`, [detailId], (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
   getUserAnswer: (conn, detailAssessmentId, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
@@ -59,6 +67,14 @@ module.exports = {
       })
     })
   },
+  getAssessmentResult: (conn, userId, parentId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      connection.query(`SELECT * FROM users_assessment_tab WHERE userid = ? AND parentid = ?`, [userId, parentId], (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
   insertUserAnswer: (conn, data, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
@@ -76,7 +92,7 @@ module.exports = {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
 
-      connection.query('UPDATE users_assessment_tab SET ? WHERE userid = ? ', [data, id], (errUpdate, resultUpdate) => {
+      connection.query('UPDATE users_assessment_tab SET ? WHERE id = ?', [data, id], (errUpdate, resultUpdate) => {
         callback(errUpdate, resultUpdate.affectedRows > 0 ? _.merge(data, { userid: id }) : [])
       })
     })

@@ -68,23 +68,12 @@ module.exports = {
   getRank: (conn, classId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT a.score, b.fullname, b.profile_picture from users_scores_tab a JOIN users_tab b ON a.userid=b.userid WHERE b.status=1 AND a.status=1 AND a.type = 'class' AND a.parentid = ? ORDER BY a.score DESC LIMIT 10`, [classId], (err, rows) => {
-        callback(err, rows)
-      })
-    })
-  },
-  getUserRank: (conn, userId, callback) => {
-    conn.getConnection((errConnection, connection) => {
-      if (errConnection) console.error(errConnection)
-      connection.query(`SELECT a.score, b.fullname, b.profile_picture from users_scores_tab a JOIN users_tab b ON a.userid=b.userid WHERE b.status=1 AND a.status=1 AND a.type = 'class' AND a.userId = ?`, [userId], (err, rows) => {
+      connection.query(`SELECT a.userid, a.score, b.fullname, b.profile_picture from users_scores_tab a JOIN users_tab b ON a.userid=b.userid WHERE b.status=1 AND a.status=1 AND a.type = 'class' AND a.parentid = ? ORDER BY a.score DESC`, [classId], (err, rows) => {
         callback(err, rows)
       })
     })
   },
   updateUserClass: (conn, data, id, callback) => {
-    console.log('update class')
-    console.log(data)
-    console.log(id)
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
       connection.query(`UPDATE users_classes_tab SET ? WHERE id = ?`, [data, id], (errUpdate, resultUpdate) => {
