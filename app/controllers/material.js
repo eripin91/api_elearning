@@ -259,7 +259,7 @@ exports.updateUserDownloadMaterial = (req, res) => {
               cb(err)
             } else {
               notificationModel.insert(req, notif, (errNotification, resultNotification) => {
-                const key = `get-user-notification-materials-$:{req.params.userId}`
+                const key = `get-user-notification-materials-:${req.params.userId}`
                 console.log(errNotification, resultNotification)
                 redisCache.del(key)
               })
