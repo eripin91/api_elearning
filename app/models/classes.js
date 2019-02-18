@@ -31,7 +31,7 @@ module.exports = {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
 
-      connection.query(`SELECT a.classid, a.rating, a.name, a.cover, a.description, a.created_at, b.fullname AS guru, b.profile_picture FROM classes_tab a LEFT JOIN guru_tab b ON a.guruid=b.guruid LEFT JOIN users_classes_tab c ON a.classid=c.classid WHERE a.status=1 AND a.classid=? LIMIT 1`, classId, (err, rows) => {
+      connection.query(`SELECT a.classid, a.name, a.description, a.cover, a.rating, a.created_at, b.fullname AS guru, b.profile_picture FROM classes_tab a LEFT JOIN guru_tab b ON a.guruid=b.guruid LEFT JOIN users_classes_tab c ON a.classid=c.classid WHERE a.status=1 AND a.classid=? LIMIT 1`, classId, (err, rows) => {
         callback(err, rows)
       })
     })
