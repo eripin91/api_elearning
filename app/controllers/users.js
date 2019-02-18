@@ -134,7 +134,7 @@ exports.login = (req, res) => {
     },
     (user, cb) => {
       const data = {
-        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 days' }),
+        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 minutes' }),
         updated_at: new Date()
       }
 
@@ -200,15 +200,13 @@ exports.requestToken = (req, res) => {
 
   async.waterfall([
     (cb) => {
-      jsonwebtoken.verify(accessToken, CONFIG.CLIENT_SECRET, (err, decoded) => {
-        cb(err, decoded)
-      })
+      cb(null, jsonwebtoken.decode(accessToken, { complete: true }))
     },
     (token, cb) => {
-      if (userId !== parseInt(token.iss)) {
+      if (userId !== parseInt(_.result(token, 'payload.iss', 0))) {
         return MiscHelper.errorCustomStatus(res, 'Invalid auth token.', 400)
       } else {
-        usersModel.getUserById(req, token.iss, (errUser, user) => {
+        usersModel.getUserById(req, token.payload.iss, (errUser, user) => {
           if (!user || errUser) return MiscHelper.errorCustomStatus(res, errUser || 'User not exists', 409)
           const dataUser = _.result(user, '[0]')
           if (_.result(dataUser, 'token')) {
