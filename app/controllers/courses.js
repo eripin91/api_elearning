@@ -151,7 +151,7 @@ exports.detail = (req, res) => {
 * @return {object} Request object
 */
 exports.material = (req, res) => {
-  const key = 'get-user-course-material-' + req.params.idUser + req.params.idDetail
+  const key = `get-user-course-detail-:${req.params.userId}-:${req.params.detailId}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, materials => {
@@ -165,11 +165,12 @@ exports.material = (req, res) => {
     (cb) => {
       coursesModel.getMaterial(req, req.params.idUser, req.params.idDetail, (errMaterial, resultMaterial) => {
         resultMaterial.map((result) => {
-          let minutes = Math.floor(result.duration / 60)
-          let second = result.duration - (minutes * 60)
-          result.duration = minutes + ':' + second
+          result.duration = MiscHelper.convertDuration(result.duration)
           if (result.is_downloaded === null) {
             result.is_downloaded = 0
+          }
+          if (result.is_done_watching === null) {
+            result.is_done_watching = 0
           }
         })
         cb(errMaterial, resultMaterial)
@@ -187,8 +188,7 @@ exports.material = (req, res) => {
     } else {
       return MiscHelper.errorCustomStatus(res, errMaterial, 400)
     }
-  }
-  )
+  })
 }
 
 /*
@@ -201,7 +201,7 @@ exports.material = (req, res) => {
 * @return {object} Request object
 */
 exports.materialDetail = (req, res) => {
-  const key = 'get-course-material-detail-' + req.params.materialDetailId
+  const key = `get-detail-course-material:${req.params.materialDetailId}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, materials => {
@@ -214,13 +214,9 @@ exports.materialDetail = (req, res) => {
     },
     (cb) => {
       coursesModel.getMaterialDetail(req, req.params.materialDetailId, req.params.userId, (errMaterialDetail, resultMaterialDetail) => {
-        let minutes = Math.floor(resultMaterialDetail.duration / 60)
-        let second = resultMaterialDetail.duration - (minutes * 60)
-        resultMaterialDetail.duration = minutes + ':' + second
+        resultMaterialDetail.duration = MiscHelper.convertDuration(resultMaterialDetail.duration)
         resultMaterialDetail.next.map((result) => {
-          minutes = Math.floor(result.duration / 60)
-          second = result.duration - (minutes * 60)
-          result.duration = minutes + ':' + second
+          result.duration = MiscHelper.convertDuration(result.duration)
         })
         cb(errMaterialDetail, resultMaterialDetail)
       })
@@ -295,7 +291,7 @@ exports.getUserCourseDetail = (req, res) => {
       })
     },
     (dataDetail, cb) => {
-      coursesModel.checkUserCourseDetail(req, req.params.userId, req.params.detailId, (errCheck, resultCheck) => {
+      coursesModel.checkUserCourseDetail(req, req.params.materialId, (errCheck, resultCheck) => {
         if (_.isEmpty(resultCheck) || errCheck) {
           cb(errCheck, dataDetail)
         } else {
@@ -308,14 +304,14 @@ exports.getUserCourseDetail = (req, res) => {
         const data = {
           userid: req.params.userId,
           detailid: req.params.detailId,
-          is_completed: 1,
+          is_done_watching: 1,
+          is_completed: 0,
           created_at: new Date(),
           updated_at: new Date()
         }
 
         coursesModel.insertMaterialDetail(req, data, (err, result) => {
           const key = `get-user-course-detail-$:{req.params.userId}-$:req.params.detailId`
-          console.log('post')
           redisCache.del(key)
           cb(err, result)
         })
@@ -336,6 +332,7 @@ exports.getUserCourseDetail = (req, res) => {
     }
   })
 }
+
 exports.updateUserCourseDetail = (req, res) => {
   const userId = req.params.userId
   const detailId = req.params.detailId

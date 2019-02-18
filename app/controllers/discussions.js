@@ -184,6 +184,7 @@ exports.insertThreadTitle = (req, res) => {
   discussionsModel.insertThreadTitle(req, data, (errInsert, resultInsert) => {
     if (!errInsert) {
       const key = `get-thread-${req.body.courseId}-${req.body.userId}`
+      redisCache.del(key)
       console.log(`${key} is deleted`)
       return MiscHelper.responses(res, resultInsert)
     } else {
