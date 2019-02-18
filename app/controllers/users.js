@@ -134,7 +134,7 @@ exports.login = (req, res) => {
     },
     (user, cb) => {
       const data = {
-        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 minutes' }),
+        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 days' }),
         updated_at: new Date()
       }
 
