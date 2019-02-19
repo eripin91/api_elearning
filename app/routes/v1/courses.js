@@ -7,7 +7,7 @@ var Route = express.Router()
 Route
   .get('/:idUser/:idClass/', AuthHelper.requiresAuthorization, AuthHelper.requiresAccessToken, CoursesControllers.get)
   .get('/course/:idCourse/', AuthHelper.requiresAuthorization, AuthHelper.requiresAccessToken, CoursesControllers.detail)
-  .get('/get/:idUser/:idDetail', CoursesControllers.material)
+  .get('/get/:idUser/:idDetail', AuthHelper.requiresAuthorization, AuthHelper.requiresAccessToken, CoursesControllers.material)
   .get('/get/detail/material/:userId/:materialDetailId', AuthHelper.requiresAuthorization, AuthHelper.requiresAccessToken, CoursesControllers.materialDetail)
   .get('/detail/:idDetail/material/:materialDetailId', CoursesControllers.nextMaterial)
   .get('/detailcomplete/:userId/:detailId', AuthHelper.requiresAuthorization, AuthHelper.requiresAccessToken, CoursesControllers.getUserCourseDetail)
