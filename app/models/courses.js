@@ -19,6 +19,14 @@ module.exports = {
       })
     })
   },
+  getDetailAssessment: (conn, detailId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.log(errConnection)
+      connection.query('SELECT * FROM courses_detail_tab WHERE detailid = ?', [detailId], (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
   getDetail: (conn, courseId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
