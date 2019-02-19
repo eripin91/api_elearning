@@ -151,7 +151,7 @@ exports.detail = (req, res) => {
 * @return {object} Request object
 */
 exports.material = (req, res) => {
-  const key = `get-user-course-detail-:${req.params.userId}-:${req.params.detailId}`
+  const key = `get-user-course-detail-:${req.params.userId}-:${req.params.detailId}-:${new Date().getTime()}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, materials => {
@@ -163,6 +163,13 @@ exports.material = (req, res) => {
       })
     },
     (cb) => {
+      let data = {}
+      coursesModel.getDetailAssessment(req, req.params.idDetail, (errDetail, resultDetail) => {
+        data.assessmentId = resultDetail[0].assesmentid
+        cb(errDetail, data)
+      })
+    },
+    (dataDetail, cb) => {
       coursesModel.getMaterial(req, req.params.idUser, req.params.idDetail, (errMaterial, resultMaterial) => {
         resultMaterial.map((result) => {
           let minutes = Math.floor(result.duration / 60)
@@ -172,7 +179,8 @@ exports.material = (req, res) => {
             result.is_downloaded = 0
           }
         })
-        cb(errMaterial, resultMaterial)
+        dataDetail.material = resultMaterial
+        cb(errMaterial, dataDetail)
       })
     },
     (dataMaterial, cb) => {
