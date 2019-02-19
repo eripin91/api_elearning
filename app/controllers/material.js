@@ -137,7 +137,7 @@ exports.update = (req, res) => {
             if (result[0] === undefined) {
               notificationModel.insert(req, notif, (errNotification, resultNotification) => {
                 console.log(errNotification, resultNotification)
-                const key = `get-user-notification-course$:{req.params.userId}`
+                const key = `get-user-notification-course:${req.params.userId}`
                 redisCache.del(key)
               })
             } else {
@@ -163,13 +163,13 @@ exports.update = (req, res) => {
               updated_at: new Date()
             }
             courseModel.insertDetailMaterial(req, data, (err, result) => {
-              const key = `get-user-course-detail-$:{req.params.userId}-$:{req.params.detailId}`
+              const key = `get-user-course-detail-:${req.params.userId}-:${req.params.detailId}`
               redisCache.del(key)
               cb(err, dataDetail)
             })
           } else {
             courseModel.checkDetailMaterial(req, req.params.detailId, (err, result) => {
-              const key = `get-user-course-detail-$:{req.params.userId}-$:{req.params.detailId}`
+              const key = `get-user-course-detail-:${req.params.userId}-:${req.params.detailId}`
               redisCache.del(key)
               cb(err, dataDetail)
             })
