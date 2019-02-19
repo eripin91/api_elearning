@@ -165,8 +165,28 @@ exports.material = (req, res) => {
     (cb) => {
       let data = {}
       coursesModel.getDetailAssessment(req, req.params.idDetail, (errDetail, resultDetail) => {
-        data.assessmentId = resultDetail[0].assesmentid
+        data.assessmentid = resultDetail[0].assesmentid
         cb(errDetail, data)
+      })
+    },
+    (dataAssessment, cb) => {
+      coursesModel.getTestCourseDetail(req, dataAssessment.assessmentid, (errAssessment, resultAssessment) => {
+        dataAssessment.single_choice = resultAssessment[0].single_choice
+        dataAssessment.essay = resultAssessment[0].essay
+        cb(errAssessment, dataAssessment)
+      })
+    },
+    (dataAssessment, cb) => {
+      coursesModel.checkTestCourseDone(req, dataAssessment.assessmentid, req.params.userId, (errAssessment, resultAssessment) => {
+        let data = {}
+        if (errAssessment) console.log(errAssessment)
+        if (_.isEmpty(resultAssessment)) {
+          dataAssessment.is_done = 0
+        } else {
+          dataAssessment.is_done = 1
+        }
+        data.assessment = dataAssessment
+        cb(errAssessment, data)
       })
     },
     (dataDetail, cb) => {
