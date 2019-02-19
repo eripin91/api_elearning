@@ -110,19 +110,38 @@ exports.getDetail = (req, res) => {
     },
     (cb) => {
       classesModel.getDetail(req, req.params.classId, req.params.userId, (errDetail, resultDetail) => {
-        if (resultDetail.length === 0) {
+        if (_.isEmpty(resultDetail)) {
           classesModel.getDetailClass(req, req.params.classId, (errData, resultData) => {
-            resultData.map((detail) => {
-              detail.is_join = 0
-            })
+            resultData[0].is_join = 0
             cb(errData, resultData[0])
           })
         } else {
-          resultDetail.map((detail) => {
-            detail.is_join = 1
+          classesModel.checkCourseDone(req, req.params.userId, req.params.classId, (err, result) => {
+            if (!err) {
+              resultDetail[0].is_join = 1
+              resultDetail[0].course_done = result[0].course_done
+              cb(errDetail, resultDetail[0])
+            }
           })
-          cb(errDetail, resultDetail[0])
         }
+      })
+    },
+    (dataDetail, cb) => {
+      classesModel.checkTotalCourse(req, req.params.classId, (err, result) => {
+        dataDetail.course = result[0].courses
+        cb(err, dataDetail)
+      })
+    },
+    (dataDetail, cb) => {
+      classesModel.checkTotalMember(req, req.params.classId, (err, result) => {
+        dataDetail.member = result[0].member
+        cb(err, dataDetail)
+      })
+    },
+    (dataDetail, cb) => {
+      classesModel.checkUserRating(req, req.params.classId, req.params.userId, (err, result) => {
+        dataDetail.is_rating = result[0].is_rating
+        cb(err, dataDetail)
       })
     },
     (dataDetail, cb) => {
@@ -339,8 +358,12 @@ exports.rating = (req, res) => {
         updated_at: new Date()
       }
 
-      classesModel.inserRating(req, data, () => {
-        cb(null)
+      classesModel.inserRating(req, data, (err) => {
+        if (!err) {
+          cb(null)
+        } else {
+          return MiscHelper.errorCustomStatus(res, err, 400)
+        }
       })
     },
     (cb) => {
