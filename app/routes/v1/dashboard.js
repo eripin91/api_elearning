@@ -6,6 +6,6 @@ var Route = express.Router()
 
 Route
   .all('/*', AuthHelper.requiresAuthorization)
-  .get('/:userId', DashboardControllers.get)
+  .get('/:userId', AuthHelper.requiresAccessToken, DashboardControllers.get)
 
 module.exports = Route
