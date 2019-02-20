@@ -86,7 +86,7 @@ exports.update = (req, res) => {
           userid: userId,
           materialid: materialId,
           watchingduration: 0,
-          is_done_watching: 0,
+          is_done_watching: 1,
           is_downloaded: 0,
           status: 1,
           created_at: new Date(),
@@ -99,7 +99,7 @@ exports.update = (req, res) => {
         }
 
         materialModel.insertUserMaterial(req, data, (err, result) => {
-          const key = `get-material-user-:${req.params.userId}`
+          const key = `get-detail-course-material:${req.params.materialId}`
           redisCache.del(key)
           const data = {
             userid: req.params.userId,
@@ -110,12 +110,12 @@ exports.update = (req, res) => {
           cb(err, data)
         })
       } else {
-        const key = `get-material-user-:${req.params.userId}`
+        const key = `get-detail-course-material:${req.params.materialId}`
         redisCache.del(key)
         const data = {
           userid: req.params.userId,
           materialid: req.params.materialId,
-          is_material_complete: trigger[0].is_done_watching,
+          is_material_complete: req.body.is_done_watching,
           detailid: req.params.detailId
         }
         cb(null, data)
@@ -213,7 +213,7 @@ exports.update = (req, res) => {
               notificationModel.checkerNotification(req, notif.message, (err, result) => {
                 if (result[0] === undefined) {
                   notificationModel.insert(req, notif, (errNotification, resultNotification) => {
-                    const key = `get-user-notification-classes-$:{req.params.userId}`
+                    const key = `get-user-notification-classes-:${req.params.userId}`
                     console.log(errNotification, resultNotification, err)
                     redisCache.del(key)
                   })
