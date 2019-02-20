@@ -339,7 +339,7 @@ exports.getUserCourseDetail = (req, res) => {
         }
 
         coursesModel.insertMaterialDetail(req, data, (err, result) => {
-          const key = `get-user-course-detail-$:{req.params.userId}-$:req.params.detailId`
+          const key = `get-user-course-detail-:${req.params.userId}-:${req.params.detailId}`
           redisCache.del(key)
           cb(err, result)
         })
@@ -380,7 +380,7 @@ exports.updateUserCourseDetail = (req, res) => {
         updated_at: new Date()
       }
       coursesModel.updateMaterialDetail(req, dataDetail[0].id, data, (errUpdateDetail, resultUpdateDetail) => {
-        const key = `get-user-course-detail-$:{req.params.userId}-$:req.params.detailId`
+        const key = `get-user-course-detail-:${req.params.userId}-:${req.params.detailId}-`
         redisCache.del(key)
         if (errUpdateDetail) {
           cb(errUpdateDetail)
@@ -451,7 +451,7 @@ exports.updateUserCourseMaterial = (req, res) => {
             }
 
             coursesModel.insertDetailMaterial(res, data, (err, result) => {
-              const key = `get-user-course-detail-$:{req.params.userId}-$:{req.params.detailId}`
+              const key = `get-user-course-detail-:${req.params.userId}-:${req.params.detailId}`
               redisCache.del(key)
               cb(err, result)
             })

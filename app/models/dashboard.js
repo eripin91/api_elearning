@@ -44,7 +44,7 @@ module.exports = {
   getClassRecomendation: (conn, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT * FROM classes_tab ORDER BY priority DESC`, (err, rows) => {
+      connection.query(`SELECT * FROM classes_tab ORDER BY priority DESC `, (err, rows) => {
         callback(err, rows)
       })
     })
