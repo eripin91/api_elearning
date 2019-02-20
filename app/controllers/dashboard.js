@@ -90,13 +90,13 @@ exports.get = (req, res) => {
         } else {
           data.recomendation_class_list = resultRec
         }
-        cb(errRec, data) 
+        cb(errRec, data)
       })
     },
     (data, cb) => {
       async.eachSeries(data.recomendation_class_list, (item, next) => {
         classModel.checkTotalCourse(req, item.classid, (err, result) => {
-          if(err) console.error(err)
+          if (err) console.error(err)
 
           result.map((course) => {
             item.courses = course.courses
@@ -115,7 +115,7 @@ exports.get = (req, res) => {
           result.map((course) => {
             var minutes = Math.floor(course.durasi / 60)
             var second = course.durasi - (minutes * 60)
-            item.durasi = `${minutes}:${second}` 
+            item.durasi = `${minutes}:${second}`
           })
           next()
         })
@@ -125,11 +125,11 @@ exports.get = (req, res) => {
     },
     (data, cb) => {
       classModel.getUserClass(req, req.params.userId, (err, result) => {
-        if(err) console.error(err)
+        if (err) console.error(err)
 
         async.eachSeries(result, (item, next) => {
           data.recomendation_class_list.map((course, index) => {
-            if(item.classid = course.classid) {
+            if (item.classid === course.classid) {
               data.recomendation_class_list.splice(index, 1)
             }
           })
@@ -139,7 +139,7 @@ exports.get = (req, res) => {
           cb(err, data)
         })
       })
-    },
+    }
   ], (errClass, resultClass) => {
     if (!errClass) {
       return MiscHelper.responses(res, resultClass)
