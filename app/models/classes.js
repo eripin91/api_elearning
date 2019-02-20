@@ -14,7 +14,7 @@ module.exports = {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
 
-      connection.query(`SELECT a.classid, a.priority, a.name, a.cover, b.fullname AS guru, COUNT(c.userid) AS member FROM classes_tab a LEFT JOIN guru_tab b ON a.guruid=b.guruid LEFT JOIN users_classes_tab c ON a.classid=c.classid WHERE a.status=1 GROUP BY a.classid ORDER BY a.priority DESC`, (err, rows) => {
+      connection.query(`SELECT a.classid as classid, a.priority, a.name, a.cover, b.fullname AS guru, COUNT(c.userid) AS member FROM classes_tab a LEFT JOIN guru_tab b ON a.guruid=b.guruid LEFT JOIN users_classes_tab c ON a.classid=c.classid WHERE a.status=1 GROUP BY a.classid ORDER BY a.priority DESC`, (err, rows) => {
         callback(err, rows)
       })
     })
@@ -162,6 +162,15 @@ module.exports = {
       if (errConnection) console.error(errConnection)
 
       connection.query(`SELECT COUNT(f.id) AS course_done FROM users_course_detail_tab f LEFT JOIN courses_detail_tab g on f.detailid=g.detailid LEFT JOIN courses_tab h on g.courseid=h.courseid WHERE f.userid=? AND h.classid=? AND f.is_completed = 1`, [userId, classId], (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  checkUserClass: (conn, userId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+
+      connection.query(`SELECT userid, classid from users_classes_tab WHERE userid=?`, userId, (err, rows) => {
         callback(err, rows)
       })
     })
