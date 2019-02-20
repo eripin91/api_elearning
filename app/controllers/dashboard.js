@@ -4,6 +4,7 @@
 
 const async = require('async')
 const dashboardModel = require('../models/dashboard')
+const classModel = require('../models/classes')
 const redisCache = require('../libs/RedisCache')
 
 exports.get = (req, res) => {
@@ -83,21 +84,22 @@ exports.get = (req, res) => {
       })
     },
     (data, cb) => {
-      dashboardModel.getClassRecomendationLimit(req, (errClass, resultClass) => {
-        if (resultClass.length === 0) {
+      classModel.getRec(req, (errRec, resultRec) => {
+        if (_.isEmpty(resultRec)) {
           data.recomendation_class_list = []
         } else {
-          data.recomendation_class_list = resultClass
+          data.recomendation_class_list = resultRec
         }
-        cb(errClass, data)
+        cb(errRec, data) 
       })
     },
     (data, cb) => {
       async.eachSeries(data.recomendation_class_list, (item, next) => {
-        dashboardModel.getDetailCount(req, item.classid, (err, result) => {
-          if (err) console.error(err)
-          result.map((total) => {
-            item.courses = total.total_bab
+        classModel.checkTotalCourse(req, item.classid, (err, result) => {
+          if(err) console.error(err)
+
+          result.map((course) => {
+            item.courses = course.courses
           })
           next()
         })
@@ -107,21 +109,37 @@ exports.get = (req, res) => {
     },
     (data, cb) => {
       async.eachSeries(data.recomendation_class_list, (item, next) => {
-        dashboardModel.getDurationCount(req, item.classid, (err, result) => {
+        classModel.checkTotalDuration(req, item.classid, (err, result) => {
           if (err) console.error(err)
-          result.map((total) => {
-            let minutes = Math.floor(total.total_durasi / 60)
-            let second = total.total_durasi - (minutes * 60)
-            total.total_durasi = minutes + ':' + second
-            item.durasi = total.total_durasi
+
+          result.map((course) => {
+            var minutes = Math.floor(course.durasi / 60)
+            var second = course.durasi - (minutes * 60)
+            item.durasi = `${minutes}:${second}` 
           })
           next()
         })
       }, err => {
-        redisCache.setex(key, 81600, data)
         cb(err, data)
       })
-    }
+    },
+    (data, cb) => {
+      classModel.getUserClass(req, req.params.userId, (err, result) => {
+        if(err) console.error(err)
+
+        async.eachSeries(result, (item, next) => {
+          data.recomendation_class_list.map((course, index) => {
+            if(item.classid = course.classid) {
+              data.recomendation_class_list.splice(index, 1)
+            }
+          })
+          next()
+        }, err => {
+          redisCache.setex(key, 81600, data)
+          cb(err, data)
+        })
+      })
+    },
   ], (errClass, resultClass) => {
     if (!errClass) {
       return MiscHelper.responses(res, resultClass)
