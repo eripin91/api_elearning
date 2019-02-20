@@ -38,6 +38,7 @@ exports.get = (req, res) => {
           if (err) console.error(err)
 
           result.map((course) => {
+            console.log(dataClasses.indexOf(item))
             item.courses = course.courses
           })
           next()
@@ -170,7 +171,7 @@ exports.getDetail = (req, res) => {
  */
 
 exports.getRec = (req, res) => {
-  const key = 'get-recommendation'
+  const key = `get-recommendation-${req.params.userId}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, recommendation => {
@@ -214,6 +215,22 @@ exports.getRec = (req, res) => {
         })
       }, err => {
         cb(err, dataRec)
+      })
+    },
+    (dataRec, cb) => {
+      classesModel.checkUserClass(req, req.params.userId, (err, result) => {
+        if (err) console.error(err)
+
+        async.eachSeries(result, (item, next) => {
+          dataRec.map((course, index) => {
+            if (item.classid === course.classid) {
+              dataRec.splice(index, 1)
+            }
+          })
+          next()
+        }, err => {
+          cb(err, dataRec)
+        })
       })
     },
     (dataRec, cb) => {
