@@ -577,7 +577,8 @@ exports.confirm = (req, res) => {
       if (user) {
         const data = {
           confirm: 1,
-          updated_at: new Date()
+          updated_at: new Date(),
+          token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 days' })
         }
 
         usersModel.update(req, user.userid, data, (err, updateUser) => {
