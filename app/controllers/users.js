@@ -8,6 +8,7 @@ const isRealEmail = require('mailchecker/platform/node').isValid
 const jsonwebtoken = require('jsonwebtoken')
 const usersModel = require('../models/users')
 const redisCache = require('../libs/RedisCache')
+const mail = require('../libs/mail')
 
 /*
  * GET : '/users/get'
@@ -418,6 +419,18 @@ exports.forgotPassword = (req, res) => {
       usersModel.insertAuth(req, data, (err, insertUser) => {
         cb(err, insertUser)
       })
+    },
+    (user, cb) => {
+      const dataEmail = {
+        from: 'No Reply Elarka <noreply@elarka.id>',
+        to: user.email,
+        subject: 'Recovery your password',
+        text: 'Please set your new password within verify code. Your verify code is: ' + user.verify_code
+      }
+
+      mail.sendEmail(dataEmail, (err, result) => {
+        cb(err, user)
+      })
     }
   ], (errUser, resultUser) => {
     if (!errUser) {
@@ -672,6 +685,18 @@ exports.register = (req, res) => {
         user.verify_code = insertUser.verify_code
         cb(err, user)
       })
+    },
+    (user, cb) => {
+      const dataEmail = {
+        from: 'No Reply Elarka <noreply@elarka.id>',
+        to: user.email,
+        subject: 'Thanks for registration account',
+        text: 'Please activating your account. Your activation code is ' + user.verify_code
+      }
+
+      mail.sendEmail(dataEmail, (err, result) => {
+        cb(err, user)
+      })
     }
   ], (errUser, resultUser) => {
     if (!errUser) {
@@ -717,7 +742,6 @@ exports.resendVerify = (req, res) => {
       })
     },
     (user, cb) => {
-      console.log(user)
       if (user.confirm === 0) {
         const data = {
           status: 1,
@@ -739,6 +763,18 @@ exports.resendVerify = (req, res) => {
       } else {
         return MiscHelper.errorCustomStatus(res, 'You already confirm.', 400)
       }
+    },
+    (user, cb) => {
+      const dataEmail = {
+        from: 'No Reply Elarka <noreply@elarka.id>',
+        to: user.email,
+        subject: 'Thanks for verify your account',
+        text: 'Please confirm your account. Your activation code is ' + user.verify_code
+      }
+
+      mail.sendEmail(dataEmail, (err, result) => {
+        cb(err, user)
+      })
     }
   ], (errVerify, resultVerify) => {
     if (!errVerify) {
