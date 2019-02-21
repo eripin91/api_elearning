@@ -591,6 +591,18 @@ exports.confirm = (req, res) => {
       } else {
         return MiscHelper.errorCustomStatus(res, 'Invalid user.', 400)
       }
+    },
+    (user, cb) => {
+      const dataEmail = {
+        from: 'No Reply Elarka <noreply@elarka.id>',
+        to: user.email,
+        subject: 'Your account has been active.',
+        text: 'Thanks, your account has been active.'
+      }
+
+      mail.sendEmail(dataEmail, (err, result) => {
+        cb(err, user)
+      })
     }
   ], (errUser, resultUser) => {
     if (!errUser) {
