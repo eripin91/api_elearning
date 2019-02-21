@@ -201,7 +201,7 @@ module.exports = {
       connection.query('SELECT ct.name, a.courseid, (SELECT COUNT(cd.detailid) FROM courses_tab c JOIN courses_detail_tab cd ON c.courseid = cd.courseid WHERE c.courseid=a.courseid) AS jumlah_total FROM classes_tab ct LEFT JOIN courses_tab a on ct.classid = a.classid WHERE a.classid = ?', classId, (err, result) => {
         if (err) console.log(err)
         let data = result[0]
-        connection.query('SELECT COUNT(id) as user_progress FROM users_course_detail_tab ud left JOIN courses_detail_tab cd ON cd.detailid = ud.detailid LEFT JOIN users_tab u ON u.userid = ud.userid WHERE cd.courseid = 1 AND u.userid = 1 ', [result[0].courseid, userId], (err, rows) => {
+        connection.query('SELECT COUNT(id) as user_progress FROM users_course_detail_tab ud left JOIN courses_detail_tab cd ON cd.detailid = ud.detailid LEFT JOIN users_tab u ON u.userid = ud.userid WHERE cd.courseid = ? AND u.userid = ? ', [result[0].courseid, userId], (err, rows) => {
           data.user_progress = rows[0].user_progress
           callback(err, data)
         })

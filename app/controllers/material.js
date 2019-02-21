@@ -222,8 +222,10 @@ exports.update = (req, res) => {
             })
           }
         })
+        cb(null, dataDetail)
+      } else {
+        cb(null, dataDetail)
       }
-      cb(null, dataDetail)
     }
 
   ],
