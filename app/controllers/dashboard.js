@@ -99,6 +99,7 @@ exports.get = (req, res) => {
         let status = 0
         async.eachSeries(data.recomendation_class_list, (item, next) => {
           for (let i = 0; i < resultClass.length; i++) {
+            console.log(item.classid + ' ' + resultClass[i].classid)
             if (resultClass[i].classid === item.classid) {
               status = 1
               break
@@ -143,7 +144,7 @@ exports.get = (req, res) => {
           next()
         })
       }, err => {
-        redisCache.setex(key, 81600, data)
+        redisCache.setex(key, 600, data)
         cb(err, data)
       })
     }
