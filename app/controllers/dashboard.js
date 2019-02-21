@@ -93,6 +93,31 @@ exports.get = (req, res) => {
       })
     },
     (data, cb) => {
+      dashboardModel.getUserClass(req, req.params.userId, (errClass, resultClass) => {
+        if (errClass) console.error(errClass)
+        let classIndex = []
+        let status = 0
+        async.eachSeries(data.recomendation_class_list, (item, next) => {
+          for (let i = 0; i < resultClass.length; i++) {
+            if (resultClass[i].classid === item.classid) {
+              status = 1
+              break
+            } else {
+              status = 0
+            }
+          }
+          if (status === 0) {
+            classIndex.push(item)
+          }
+          next()
+        }, err => {
+          data.recomendation_class = classIndex.length
+          data.recomendation_class_list = classIndex
+          cb(err, data)
+        })
+      })
+    },
+    (data, cb) => {
       async.eachSeries(data.recomendation_class_list, (item, next) => {
         dashboardModel.getDetailCount(req, item.classid, (err, result) => {
           if (err) console.error(err)
