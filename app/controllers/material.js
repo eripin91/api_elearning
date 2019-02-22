@@ -145,6 +145,7 @@ exports.update = (req, res) => {
             }
             const key = `get-courses:${req.params.classId}`
             redisCache.del(key)
+            
           })
         } else {
           data.is_completed_detail = 0
