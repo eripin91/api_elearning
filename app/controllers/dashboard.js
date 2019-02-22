@@ -13,7 +13,7 @@ exports.get = (req, res) => {
     return MiscHelper.errorCustomStatus(req, req.validationErrors(true))
   }
 
-  const key = `get-dashboard:${req.params.userId}` // disabled cache
+  const key = `get-dashboard:${req.params.userId}:${new Date().getTime()}` // disabled cache
   async.waterfall([
     (cb) => {
       redisCache.get(key, users => {
