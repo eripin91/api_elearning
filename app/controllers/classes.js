@@ -279,7 +279,11 @@ exports.getUserClass = (req, res) => {
     },
     (cb) => {
       classesModel.getUserClass(req, req.params.userId, (errUserClass, resultUserClass) => {
-        cb(errUserClass, resultUserClass)
+        if (_.isEmpty(resultUserClass)) {
+          return MiscHelper.responses(res, {'message':'Belum ada kelas yang diikuti, ayo segera gabung kelas !'})
+        } else {
+          cb(errUserClass, resultUserClass)
+        }
       })
     },
     (dataUserClass, cb) => {
@@ -471,9 +475,9 @@ exports.insertUserClass = (req, res) => {
       }
 
       notificationsModel.insert(req, data, (errInsert, resultInsert) => {
-        // delete redis user detail
-        const key = `get-user-class-${userId}`
-        redisCache.del(key)
+        redisCache.del(`get-user-class-${userId}`)
+        redisCache.del(`get-recommendation-${userId}`)
+        redisCache.del(`get-dashboard:${userId}`)
         cb(errInsert, resultInsert)
       })
     }
