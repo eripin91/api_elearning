@@ -280,7 +280,7 @@ exports.getUserClass = (req, res) => {
     (cb) => {
       classesModel.getUserClass(req, req.params.userId, (errUserClass, resultUserClass) => {
         if (_.isEmpty(resultUserClass)) {
-          return MiscHelper.responses(res, {'message':'Belum ada kelas yang diikuti, ayo segera gabung kelas !'})
+          return MiscHelper.responses(res, { 'message': 'Belum ada kelas yang diikuti, ayo segera gabung kelas !' })
         } else {
           cb(errUserClass, resultUserClass)
         }
