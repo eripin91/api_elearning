@@ -16,7 +16,7 @@ const redisCache = require('../libs/RedisCache')
  */
 
 exports.get = (req, res) => {
-  const key = `get-courses:${req.params.idClass}:${new Date().getTime}`
+  const key = `get-courses:${req.params.idClass}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, courses => {
