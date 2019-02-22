@@ -221,6 +221,8 @@ exports.update = (req, res) => {
                   })
                 }
               })
+              const key = `get-user-class-${req.params.userId}`
+              redisCache.del(key)
             })
           }
         })
