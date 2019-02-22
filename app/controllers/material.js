@@ -167,12 +167,16 @@ exports.update = (req, res) => {
             courseModel.insertDetailMaterial(req, data, (err, result) => {
               const key = `get-user-course-detail-:${req.params.userId}-:${req.params.detailId}`
               redisCache.del(key)
+              const courseKey = `get-courses:${req.params.idClass}`
+              redisCache.del(courseKey)
               cb(err, dataDetail)
             })
           } else {
             courseModel.checkDetailMaterial(req, req.params.detailId, (err, result) => {
               const key = `get-user-course-detail-:${req.params.userId}-:${req.params.detailId}`
               redisCache.del(key)
+              const courseKey = `get-courses:${req.params.idClass}`
+              redisCache.del(courseKey)
               cb(err, dataDetail)
             })
           }
