@@ -268,7 +268,7 @@ exports.insertThreadContent = (req, res) => {
 
       notificationsModel.insert(req, data, (errInsert, resultInsert) => {
         const key = `get-thread-detail-${parentId}-${userId}-total_like-desc`
-        console.log(key)
+        redisCache.del(`get-thread-detail-${parentId}-${userId}-time-desc`)
         redisCache.del(key)
         cb(errInsert, resultInsert)
       })
@@ -330,9 +330,11 @@ exports.like = (req, res) => {
                   console.log(`${key} deleted`)
                   if (resultCheck[0].parent === 0) {
                     const key = `get-thread-detail-${discussionId}-${userId}-total_like-desc`
+                    redisCache.del(`get-thread-detail-${discussionId}-${userId}-time-desc`)
                     redisCache.del(key)
                   } else {
                     const key = `get-thread-detail-${resultCheck[0].parent}-${userId}-total_like-desc`
+                    redisCache.del(`get-thread-detail-${resultCheck[0].parent}-${userId}-time-desc`)
                     redisCache.del(key)
                   }
                 }
@@ -359,9 +361,11 @@ exports.like = (req, res) => {
             redisCache.del(key)
             if (resultCheck[0].parent === 0) {
               const key = `get-thread-detail-${discussionId}-${userId}-total_like-desc`
+              redisCache.del(`get-thread-detail-${discussionId}-${userId}-time-desc`)
               redisCache.del(key)
             } else {
               const key = `get-thread-detail-${resultCheck[0].parent}-${userId}-total_like-desc`
+              redisCache.del(`get-thread-detail-${resultCheck[0].parent}-${userId}-time-desc`)
               redisCache.del(key)
             }
             cb(err, result)
