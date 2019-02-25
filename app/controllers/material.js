@@ -179,7 +179,9 @@ exports.update = (req, res) => {
               redisCache.del(key)
               const courseKey = `get-courses:${req.params.idClass}`
               redisCache.del(courseKey)
-              cb(err, dataDetail)
+              const classKey = `get-user-class-${req.params.userId}`
+              redisCache.del(classKey)
+              cb(err, dataDetail) 
             })
           }
         })
