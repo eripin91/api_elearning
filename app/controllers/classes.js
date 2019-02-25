@@ -38,6 +38,7 @@ exports.get = (req, res) => {
           if (err) console.error(err)
 
           result.map((course) => {
+            console.log(dataClasses.indexOf(item))
             item.courses = course.courses
           })
           next()
@@ -110,19 +111,38 @@ exports.getDetail = (req, res) => {
     },
     (cb) => {
       classesModel.getDetail(req, req.params.classId, req.params.userId, (errDetail, resultDetail) => {
-        if (resultDetail.length === 0) {
+        if (_.isEmpty(resultDetail)) {
           classesModel.getDetailClass(req, req.params.classId, (errData, resultData) => {
-            resultData.map((detail) => {
-              detail.is_join = 0
-            })
+            resultData[0].is_join = 0
             cb(errData, resultData[0])
           })
         } else {
-          resultDetail.map((detail) => {
-            detail.is_join = 1
+          classesModel.checkCourseDone(req, req.params.userId, req.params.classId, (err, result) => {
+            if (!err) {
+              resultDetail[0].is_join = 1
+              resultDetail[0].course_done = result[0].course_done
+              cb(errDetail, resultDetail[0])
+            }
           })
-          cb(errDetail, resultDetail[0])
         }
+      })
+    },
+    (dataDetail, cb) => {
+      classesModel.checkTotalCourse(req, req.params.classId, (err, result) => {
+        dataDetail.course = result[0].courses
+        cb(err, dataDetail)
+      })
+    },
+    (dataDetail, cb) => {
+      classesModel.checkTotalMember(req, req.params.classId, (err, result) => {
+        dataDetail.member = result[0].member
+        cb(err, dataDetail)
+      })
+    },
+    (dataDetail, cb) => {
+      classesModel.checkUserRating(req, req.params.classId, req.params.userId, (err, result) => {
+        dataDetail.is_rating = result[0].is_rating
+        cb(err, dataDetail)
       })
     },
     (dataDetail, cb) => {
@@ -151,7 +171,7 @@ exports.getDetail = (req, res) => {
  */
 
 exports.getRec = (req, res) => {
-  const key = 'get-recommendation'
+  const key = `get-recommendation-${req.params.userId}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, recommendation => {
@@ -195,6 +215,22 @@ exports.getRec = (req, res) => {
         })
       }, err => {
         cb(err, dataRec)
+      })
+    },
+    (dataRec, cb) => {
+      classesModel.checkUserClass(req, req.params.userId, (err, result) => {
+        if (err) console.error(err)
+
+        async.eachSeries(result, (item, next) => {
+          dataRec.map((course, index) => {
+            if (item.classid === course.classid) {
+              dataRec.splice(index, 1)
+            }
+          })
+          next()
+        }, err => {
+          cb(err, dataRec)
+        })
       })
     },
     (dataRec, cb) => {
@@ -243,7 +279,11 @@ exports.getUserClass = (req, res) => {
     },
     (cb) => {
       classesModel.getUserClass(req, req.params.userId, (errUserClass, resultUserClass) => {
-        cb(errUserClass, resultUserClass)
+        if (_.isEmpty(resultUserClass)) {
+          return MiscHelper.responses(res, { 'message': 'Belum ada kelas yang diikuti, ayo segera gabung kelas !' })
+        } else {
+          cb(errUserClass, resultUserClass)
+        }
       })
     },
     (dataUserClass, cb) => {
@@ -339,8 +379,12 @@ exports.rating = (req, res) => {
         updated_at: new Date()
       }
 
-      classesModel.inserRating(req, data, () => {
-        cb(null)
+      classesModel.inserRating(req, data, (err) => {
+        if (!err) {
+          cb(null)
+        } else {
+          return MiscHelper.errorCustomStatus(res, err, 400)
+        }
       })
     },
     (cb) => {
@@ -431,9 +475,9 @@ exports.insertUserClass = (req, res) => {
       }
 
       notificationsModel.insert(req, data, (errInsert, resultInsert) => {
-        // delete redis user detail
-        const key = `get-user-class-${userId}`
-        redisCache.del(key)
+        redisCache.del(`get-user-class-${userId}`)
+        redisCache.del(`get-recommendation-${userId}`)
+        redisCache.del(`get-dashboard:${userId}`)
         cb(errInsert, resultInsert)
       })
     }
