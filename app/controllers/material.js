@@ -122,7 +122,7 @@ exports.update = (req, res) => {
       }
     },
     (data, cb) => {
-      courseModel.getCheckCourseComplete(req, req.params.detailId, (errMaterialDetail, resultMaterialDetail) => {
+      courseModel.getCheckCourseComplete(req, req.params.detailId, req.params.userId, (errMaterialDetail, resultMaterialDetail) => {
         if (resultMaterialDetail.jumlah_materi === resultMaterialDetail.user_materi) {
           data.is_completed_detail = 1
           let notif = {

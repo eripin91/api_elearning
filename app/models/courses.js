@@ -43,13 +43,13 @@ module.exports = {
       })
     })
   },
-  getCheckCourseComplete: (conn, detailId, callback) => {
+  getCheckCourseComplete: (conn, detailId, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
       connection.query('SELECT COUNT(materialid) AS jumlah_materi FROM courses_material_tab WHERE detailid = ?', [detailId], (err, rows) => {
         if (err) console.error(err)
         let data = rows[0]
-        connection.query('SELECT cd.name as nama, COUNT(um.id) AS user_materi, ct.name FROM users_material_progress_tab um LEFT JOIN courses_material_tab cm ON um.materialid = cm.materialid LEFT JOIN users_tab u ON um.userid = u.userid LEFT JOIN courses_detail_tab cd ON cm.detailid = cd.detailid LEFT JOIN courses_tab c ON c.courseid = cd.courseid LEFT JOIN classes_tab ct ON ct.classid = c.classid WHERE cd.detailid = ? AND um.is_done_watching = 1', detailId, (err, result) => {
+        connection.query('SELECT cd.name as nama, COUNT(um.id) AS user_materi, ct.name FROM users_material_progress_tab um JOIN courses_material_tab cm ON um.materialid = cm.materialid JOIN users_tab u ON um.userid = u.userid JOIN courses_detail_tab cd ON cm.detailid = cd.detailid JOIN courses_tab c ON c.courseid = cd.courseid JOIN classes_tab ct ON ct.classid = c.classid WHERE cd.detailid = ? AND um.is_done_watching = 1 AND um.userid = ? ', [detailId, userId], (err, result) => {
           data.user_materi = result[0].user_materi
           data.name = result[0].nama
           data.class_name = result[0].name
