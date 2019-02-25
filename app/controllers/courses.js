@@ -229,7 +229,7 @@ exports.material = (req, res) => {
 * @return {object} Request object
 */
 exports.materialDetail = (req, res) => {
-  const key = `get-detail-course-material:${req.params.materialDetailId}`
+  const key = `get-detail-course-material:${req.params.materialDetailId}:${new Date().getTime()}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, materials => {
