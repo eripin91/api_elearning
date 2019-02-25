@@ -5,7 +5,7 @@
 var Route = express.Router()
 
 Route
-  .get('/:idUser/:idClass/',  CoursesControllers.get)
+  .get('/:idUser/:idClass/', CoursesControllers.get)
   .get('/course/:idCourse/', AuthHelper.requiresAuthorization, AuthHelper.requiresAccessToken, CoursesControllers.detail)
   .get('/get/:idUser/:idDetail', CoursesControllers.material)
   .get('/get/detail/material/:userId/:materialDetailId', AuthHelper.requiresAuthorization, AuthHelper.requiresAccessToken, CoursesControllers.materialDetail)
