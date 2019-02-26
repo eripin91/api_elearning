@@ -417,7 +417,8 @@ exports.forgotPassword = (req, res) => {
       }
 
       usersModel.insertAuth(req, data, (err, insertUser) => {
-        cb(err, insertUser)
+        user.auth = insertUser
+        cb(err, user)
       })
     },
     (user, cb) => {
