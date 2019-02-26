@@ -122,14 +122,18 @@ exports.login = (req, res) => {
       usersModel.getUserByEmail(req, req.body.email, (errUser, user) => {
         if (!user) return MiscHelper.notFound(res, 'Email not found on our database')
         const dataUser = _.result(user, '[0]')
-        if (_.result(dataUser, 'salt')) {
-          if (MiscHelper.setPassword(req.body.password, dataUser.salt).passwordHash === dataUser.password) {
-            cb(errUser, dataUser)
+        if (dataUser.confirm === 1) {
+          if (_.result(dataUser, 'salt')) {
+            if (MiscHelper.setPassword(req.body.password, dataUser.salt).passwordHash === dataUser.password) {
+              cb(errUser, dataUser)
+            } else {
+              return MiscHelper.errorCustomStatus(res, 'Email or password is invalid!', 400)
+            }
           } else {
             return MiscHelper.errorCustomStatus(res, 'Email or password is invalid!', 400)
           }
         } else {
-          return MiscHelper.errorCustomStatus(res, 'Email or password is invalid!', 400)
+          return MiscHelper.errorCustomStatus(res, 'Your account is not confirm yet. Please do confirm first!', 409)
         }
       })
     },
