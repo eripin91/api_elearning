@@ -25,7 +25,11 @@ const CONFIG = {
   REQUEST_HEADERS: {
     Authorization: 'X-COURSES-API'
   },
-  CLIENT_SECRET: process.env.CLIENT_SECRET
+  CLIENT_SECRET: process.env.CLIENT_SECRET,
+  MAILGUN: {
+    DOMAIN: process.env.MAILGUN_DOMAIN,
+    API_KEY: process.env.MAILGUN_API_KEY
+  }
 }
 
 module.exports = CONFIG

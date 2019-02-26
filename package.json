@@ -54,6 +54,7 @@
     "jsonwebtoken": "^8.4.0",
     "lodash": "^4.17.11",
     "mailchecker": "^3.2.17",
+    "mailgun-js": "^0.22.0",
     "moment": "^2.24.0",
     "mysql": "^2.16.0",
     "nested-beautifier": "^1.0.12",
