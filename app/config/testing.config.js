@@ -1,6 +1,6 @@
 'use strict'
 
-const PORT = 2002
+const PORT = 3002
 const BASE_DOMAIN = process.env.BASE_DOMAIN || '0.0.0.0'
 
 const CONFIG = {
