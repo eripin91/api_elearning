@@ -417,7 +417,20 @@ exports.forgotPassword = (req, res) => {
       }
 
       usersModel.insertAuth(req, data, (err, insertUser) => {
-        cb(err, insertUser)
+        user.auth = insertUser
+        cb(err, user)
+      })
+    },
+    (user, cb) => {
+      const dataEmail = {
+        from: 'No Reply Elarka <noreply@elarka.id>',
+        to: user.email,
+        subject: 'Recovery your password',
+        text: 'Please set your new password within verify code. Your verify code is: ' + user.verify_code
+      }
+
+      mail.sendEmail(dataEmail, (err, result) => {
+        cb(err, user)
       })
     },
     (user, cb) => {

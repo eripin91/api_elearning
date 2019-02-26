@@ -11,6 +11,6 @@ Route
   .get('/recs/:userId', AuthHelper.requiresAccessToken, ClassesControllers.getRec)
   .get('/user/:userId', AuthHelper.requiresAccessToken, ClassesControllers.getUserClass)
   .post('/rating', AuthHelper.requiresAccessToken, ClassesControllers.rating)
-  .post('/add', AuthHelper.requiresAccessToken, ClassesControllers.insertUserClass)
+  .post('/add', ClassesControllers.insertUserClass)
 
 module.exports = Route
