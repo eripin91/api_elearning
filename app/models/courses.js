@@ -35,6 +35,14 @@ module.exports = {
       })
     })
   },
+  getMaterials: (conn, materialId, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.log(errConnection)
+      connection.query('SELECT duration from courses_material_tab WHERE materialid = ?', [materialId], (err, result) => {
+        callback(err, result[0])
+      })
+    })
+  },
   getMaterial: (conn, userId, detailId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
