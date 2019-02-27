@@ -99,7 +99,6 @@ exports.get = (req, res) => {
         let status = 0
         async.eachSeries(data.recomendation_class_list, (item, next) => {
           for (let i = 0; i < resultClass.length; i++) {
-            console.log(item.classid + ' ' + resultClass[i].classid)
             if (resultClass[i].classid === item.classid) {
               status = 1
               break

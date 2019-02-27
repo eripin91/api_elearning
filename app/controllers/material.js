@@ -70,6 +70,11 @@ exports.update = (req, res) => {
           } else if (req.body.is_done_watching === undefined) {
             Object.assign(data, { is_downloaded: req.body.is_downloaded })
           }
+          courseModel.getMaterials(req, materialId, (err, resultMaterial) => {
+            if (err) console.error(err)
+            data.watchingduration = resultMaterial.duration
+          })
+
           materialModel.updateUserMaterial(req, resultCheck[0].id, data, (err, resultUpdateMaterial) => {
             if (err) {
               cb(err)
@@ -82,32 +87,38 @@ exports.update = (req, res) => {
     },
     (trigger, cb) => {
       if (trigger === 1) {
-        const data = {
-          userid: userId,
-          materialid: materialId,
-          watchingduration: 0,
-          is_done_watching: 1,
-          is_downloaded: 0,
-          status: 1,
-          created_at: new Date(),
-          updated_at: new Date()
-        }
-        if (req.body.is_downloaded === undefined) {
-          data.is_done_watching = req.body.is_done_watching
-        } else if (req.body.is_done_watching === undefined) {
-          data.is_downloaded = req.body.is_downloaded
-        }
-
-        materialModel.insertUserMaterial(req, data, (err, result) => {
-          const key = `get-detail-course-material:${req.params.materialId}`
-          redisCache.del(key)
+        let duration = {}
+        courseModel.getMaterials(req, materialId, (err, resultMaterial) => {
+          if (err) console.error(err)
+          console.log(resultMaterial)
+          duration = resultMaterial
           const data = {
-            userid: req.params.userId,
-            materialid: req.params.materialId,
-            is_material_complete: req.body.is_done_watching,
-            detailid: req.params.detailId
+            userid: userId,
+            materialid: materialId,
+            watchingduration: duration.duration,
+            is_done_watching: 1,
+            is_downloaded: 0,
+            status: 1,
+            created_at: new Date(),
+            updated_at: new Date()
           }
-          cb(err, data)
+          if (req.body.is_downloaded === undefined) {
+            data.is_done_watching = req.body.is_done_watching
+          } else if (req.body.is_done_watching === undefined) {
+            data.is_downloaded = req.body.is_downloaded
+          }
+
+          materialModel.insertUserMaterial(req, data, (err, result) => {
+            const key = `get-detail-course-material:${req.params.materialId}`
+            redisCache.del(key)
+            const data = {
+              userid: req.params.userId,
+              materialid: req.params.materialId,
+              is_material_complete: req.body.is_done_watching,
+              detailid: req.params.detailId
+            }
+            cb(err, data)
+          })
         })
       } else {
         const key = `get-detail-course-material:${req.params.materialId}`
