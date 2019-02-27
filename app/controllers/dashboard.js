@@ -112,7 +112,7 @@ exports.get = (req, res) => {
           next()
         }, err => {
           data.recomendation_class = classIndex.length
-          data.recomendation_class_list = classIndex
+          data.recomendation_class_list = classIndex.slice(0, 4)
           cb(err, data)
         })
       })
