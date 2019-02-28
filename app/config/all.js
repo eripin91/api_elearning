@@ -29,7 +29,8 @@ const CONFIG = {
   MAILGUN: {
     DOMAIN: process.env.MAILGUN_DOMAIN,
     API_KEY: process.env.MAILGUN_API_KEY
-  }
+  },
+  TOKEN_EXPIRED: '1 minutes'
 }
 
 module.exports = CONFIG
