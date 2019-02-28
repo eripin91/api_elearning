@@ -139,7 +139,7 @@ exports.login = (req, res) => {
     },
     (user, cb) => {
       const data = {
-        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 days' }),
+        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: CONFIG.TOKEN_EXPIRED }),
         updated_at: new Date()
       }
 
@@ -176,7 +176,7 @@ exports.logout = (req, res) => {
   if (!userId) return MiscHelper.errorCustomStatus(res, 'UserID required.', 400)
 
   const data = {
-    token: jsonwebtoken.sign({ iss: userId, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 days' }),
+    token: jsonwebtoken.sign({ iss: userId, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: CONFIG.TOKEN_EXPIRED }),
     updated_at: new Date()
   }
 
@@ -228,7 +228,7 @@ exports.requestToken = (req, res) => {
     },
     (user, cb) => {
       const data = {
-        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 days' }),
+        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: CONFIG.TOKEN_EXPIRED }),
         updated_at: new Date()
       }
 
@@ -583,7 +583,7 @@ exports.confirm = (req, res) => {
         const data = {
           confirm: 1,
           updated_at: new Date(),
-          token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 days' })
+          token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: CONFIG.TOKEN_EXPIRED })
         }
 
         usersModel.update(req, user.userid, data, (err, updateUser) => {
