@@ -430,7 +430,7 @@ exports.forgotPassword = (req, res) => {
         from: 'No Reply Elarka <noreply@elarka.id>',
         to: user.email,
         subject: 'Recovery your password',
-        text: 'Please set your new password within verify code. Your verify code is: ' + user.verify_code
+        text: 'Please set your new password within verify code. Your verify code is: ' + user.auth.verify_code
       }
 
       mail.sendEmail(dataEmail, (err, result) => {
