@@ -122,24 +122,24 @@ exports.login = (req, res) => {
       usersModel.getUserByEmail(req, req.body.email, (errUser, user) => {
         if (!user) return MiscHelper.notFound(res, 'Email not found on our database')
         const dataUser = _.result(user, '[0]')
-        if (dataUser.confirm === 1) {
-          if (_.result(dataUser, 'salt')) {
+        if (_.result(dataUser, 'salt')) {
+          if (dataUser.confirm === 1) {
             if (MiscHelper.setPassword(req.body.password, dataUser.salt).passwordHash === dataUser.password) {
               cb(errUser, dataUser)
             } else {
               return MiscHelper.errorCustomStatus(res, 'Email or password is invalid!', 400)
             }
           } else {
-            return MiscHelper.errorCustomStatus(res, 'Email or password is invalid!', 400)
+            return MiscHelper.errorCustomStatus(res, 'Your account is not confirm yet. Please do confirm first!', 409)
           }
         } else {
-          return MiscHelper.errorCustomStatus(res, 'Your account is not confirm yet. Please do confirm first!', 409)
+          return MiscHelper.errorCustomStatus(res, 'Email not found!', 404)
         }
       })
     },
     (user, cb) => {
       const data = {
-        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 days' }),
+        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: CONFIG.TOKEN_EXPIRED }),
         updated_at: new Date()
       }
 
@@ -176,7 +176,7 @@ exports.logout = (req, res) => {
   if (!userId) return MiscHelper.errorCustomStatus(res, 'UserID required.', 400)
 
   const data = {
-    token: jsonwebtoken.sign({ iss: userId, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 days' }),
+    token: jsonwebtoken.sign({ iss: userId, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: CONFIG.TOKEN_EXPIRED }),
     updated_at: new Date()
   }
 
@@ -228,7 +228,7 @@ exports.requestToken = (req, res) => {
     },
     (user, cb) => {
       const data = {
-        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 days' }),
+        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: CONFIG.TOKEN_EXPIRED }),
         updated_at: new Date()
       }
 
@@ -430,7 +430,7 @@ exports.forgotPassword = (req, res) => {
         from: 'No Reply Elarka <noreply@elarka.id>',
         to: user.email,
         subject: 'Recovery your password',
-        text: 'Please set your new password within verify code. Your verify code is: ' + user.verify_code
+        text: 'Please set your new password within verify code. Your verify code is: ' + user.auth.verify_code
       }
 
       mail.sendEmail(dataEmail, (err, result) => {
@@ -583,7 +583,7 @@ exports.confirm = (req, res) => {
         const data = {
           confirm: 1,
           updated_at: new Date(),
-          token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 days' })
+          token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: CONFIG.TOKEN_EXPIRED })
         }
 
         usersModel.update(req, user.userid, data, (err, updateUser) => {
