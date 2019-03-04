@@ -421,6 +421,7 @@ exports.forgotPassword = (req, res) => {
       }
 
       usersModel.insertAuth(req, data, (err, insertUser) => {
+        user.verify_code = data.verify_code
         user.auth = insertUser
         cb(err, user)
       })
@@ -430,7 +431,8 @@ exports.forgotPassword = (req, res) => {
         from: 'No Reply Elarka <noreply@elarka.id>',
         to: user.email,
         subject: 'Recovery your password',
-        text: 'Please set your new password within verify code. Your verify code is: ' + user.auth.verify_code
+        data: user,
+        tpl: 'forgot-password'
       }
 
       mail.sendEmail(dataEmail, (err, result) => {
@@ -602,7 +604,8 @@ exports.confirm = (req, res) => {
         from: 'No Reply Elarka <noreply@elarka.id>',
         to: user.email,
         subject: 'Your account has been active.',
-        text: 'Thanks, your account has been active.'
+        data: user,
+        tpl: 'registration-successfully'
       }
 
       mail.sendEmail(dataEmail, (err, result) => {
@@ -709,7 +712,8 @@ exports.register = (req, res) => {
         from: 'No Reply Elarka <noreply@elarka.id>',
         to: user.email,
         subject: 'Thanks for registration account',
-        text: 'Please activating your account. Your activation code is ' + user.verify_code
+        data: user,
+        tpl: 'verify-account'
       }
 
       mail.sendEmail(dataEmail, (err, result) => {
@@ -786,8 +790,9 @@ exports.resendVerify = (req, res) => {
       const dataEmail = {
         from: 'No Reply Elarka <noreply@elarka.id>',
         to: user.email,
-        subject: 'Thanks for verify your account',
-        text: 'Please confirm your account. Your activation code is ' + user.verify_code
+        subject: 'Resend Verify Code',
+        data: user,
+        tpl: 'verify-account'
       }
 
       mail.sendEmail(dataEmail, (err, result) => {
