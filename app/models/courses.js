@@ -207,7 +207,7 @@ module.exports = {
   checkUserClassProgress: (conn, classId, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query('SELECT ct.name, a.courseid, (SELECT COUNT(cd.detailid) FROM courses_tab c JOIN courses_detail_tab cd ON c.courseid = cd.courseid WHERE c.courseid=a.courseid ANS c.status = 1) AS jumlah_total FROM classes_tab ct LEFT JOIN courses_tab a on ct.classid = a.classid WHERE a.classid = ? AND a.status = 1', classId, (err, result) => {
+      connection.query('SELECT ct.name, a.courseid, (SELECT COUNT(cd.detailid) FROM courses_tab c JOIN courses_detail_tab cd ON c.courseid = cd.courseid WHERE c.courseid=a.courseid AND c.status = 1) AS jumlah_total FROM classes_tab ct LEFT JOIN courses_tab a on ct.classid = a.classid WHERE a.classid = ? AND a.status = 1', classId, (err, result) => {
         if (err) console.log(err)
         let data = result[0]
         connection.query('SELECT COUNT(id) as user_progress FROM users_course_detail_tab ud left JOIN courses_detail_tab cd ON cd.detailid = ud.detailid LEFT JOIN users_tab u ON u.userid = ud.userid WHERE cd.courseid = ? AND u.userid = ? AND cd.status = 1', [result[0].courseid, userId], (err, rows) => {
