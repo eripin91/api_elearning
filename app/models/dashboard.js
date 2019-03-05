@@ -4,7 +4,7 @@ module.exports = {
   getUserClass: (conn, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT * FROM users_classes_tab WHERE userid = ? GROUP BY classid AND status = 1`, [userId], (err, rows) => {
+      connection.query(`SELECT * FROM users_classes_tab WHERE userid = ? AND status = 1 GROUP BY classid`, [userId], (err, rows) => {
         callback(err, rows)
       })
     })
