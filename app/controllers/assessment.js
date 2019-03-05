@@ -88,7 +88,15 @@ exports.getQuestions = (req, res) => {
     return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
   }
 
-  const key = `get-assessment-questions:${req.params.parentId}:${new Date().getTime()}` // disabled cache
+  const userId = _.result(req.headers, 'x-telkom-user', 0)
+  const key = `get-assessment-questions:${req.params.parentId}:${userId}:${new Date().getTime()}` // disabled cache
+
+  const getUserAnswer = (detailid, qNo, cb) => {
+    assessmentModel.getUserAnswer(req, detailid, qNo, (errAnswer, userAnswer) => {
+      cb(errAnswer, _.result(userAnswer, '[0].answer', ''))
+    })
+  }
+
   async.waterfall([
     (cb) => {
       redisCache.get(key, users => {
@@ -110,8 +118,15 @@ exports.getQuestions = (req, res) => {
         if (!_.isEmpty(item.options)) {
           item.options = JSON.parse(item.options)
         }
-        dataAssessment.push(item)
-        next()
+
+        getUserAnswer(item.detailid, userId, (errAnswer, userAnswer) => {
+          _.filter(item.options, o => {
+            o.isAnswer = parseInt(userAnswer) === parseInt(o._id) || false
+          })
+          item.user_answer = userAnswer
+          dataAssessment.push(item)
+          next()
+        })
       }, err => {
         redisCache.setex(key, 81600, dataAssessment)
         cb(err, dataAssessment)
@@ -168,8 +183,7 @@ exports.getQuestionsDetail = (req, res) => {
       if (!_.result(data, '[0]')) {
         return MiscHelper.errorCustomStatus(res, 'Question not found.', 404)
       }
-
-      assessmentModel.getUserAnswer(req, data[0].detailid, req.body.qNo, (errAnswer, userAnswer) => {
+      assessmentModel.getUserAnswer(req, data[0].detailid, req.body.userId, (errAnswer, userAnswer) => {
         data[0].user_answer = _.result(userAnswer, '[0].answer', '')
         cb(errAnswer, data)
       })
@@ -179,6 +193,9 @@ exports.getQuestionsDetail = (req, res) => {
       async.eachSeries(data, (item, next) => {
         if (!_.isEmpty(item.options)) {
           item.options = JSON.parse(item.options)
+          _.filter(item.options, o => {
+            o.isAnswer = parseInt(item.user_answer) === parseInt(o._id) || false
+          })
         }
         dataAssessment.push(item)
         next()

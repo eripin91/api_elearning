@@ -38,6 +38,7 @@ exports.get = (req, res) => {
           if (err) console.error(err)
 
           result.map((course) => {
+            console.log(dataClasses.indexOf(item))
             item.courses = course.courses
           })
           next()
@@ -170,7 +171,7 @@ exports.getDetail = (req, res) => {
  */
 
 exports.getRec = (req, res) => {
-  const key = 'get-recommendation'
+  const key = `get-recommendation-${req.params.userId}`
   async.waterfall([
     (cb) => {
       redisCache.get(key, recommendation => {
@@ -214,6 +215,22 @@ exports.getRec = (req, res) => {
         })
       }, err => {
         cb(err, dataRec)
+      })
+    },
+    (dataRec, cb) => {
+      classesModel.checkUserClass(req, req.params.userId, (err, result) => {
+        if (err) console.error(err)
+
+        async.eachSeries(result, (item, next) => {
+          dataRec.map((course, index) => {
+            if (item.classid === course.classid) {
+              dataRec.splice(index, 1)
+            }
+          })
+          next()
+        }, err => {
+          cb(err, dataRec)
+        })
       })
     },
     (dataRec, cb) => {
@@ -262,7 +279,11 @@ exports.getUserClass = (req, res) => {
     },
     (cb) => {
       classesModel.getUserClass(req, req.params.userId, (errUserClass, resultUserClass) => {
-        cb(errUserClass, resultUserClass)
+        if (_.isEmpty(resultUserClass)) {
+          return MiscHelper.responses(res, { 'message': 'Belum ada kelas yang diikuti, ayo segera gabung kelas !' })
+        } else {
+          cb(errUserClass, resultUserClass)
+        }
       })
     },
     (dataUserClass, cb) => {
@@ -454,9 +475,9 @@ exports.insertUserClass = (req, res) => {
       }
 
       notificationsModel.insert(req, data, (errInsert, resultInsert) => {
-        // delete redis user detail
-        const key = `get-user-class-${userId}`
-        redisCache.del(key)
+        redisCache.del(`get-user-class-${userId}`)
+        redisCache.del(`get-recommendation-${userId}`)
+        redisCache.del(`get-dashboard:${userId}`)
         cb(errInsert, resultInsert)
       })
     }

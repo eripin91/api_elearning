@@ -8,6 +8,7 @@ const isRealEmail = require('mailchecker/platform/node').isValid
 const jsonwebtoken = require('jsonwebtoken')
 const usersModel = require('../models/users')
 const redisCache = require('../libs/RedisCache')
+const mail = require('../libs/mail')
 
 /*
  * GET : '/users/get'
@@ -122,19 +123,23 @@ exports.login = (req, res) => {
         if (!user) return MiscHelper.notFound(res, 'Email not found on our database')
         const dataUser = _.result(user, '[0]')
         if (_.result(dataUser, 'salt')) {
-          if (MiscHelper.setPassword(req.body.password, dataUser.salt).passwordHash === dataUser.password) {
-            cb(errUser, dataUser)
+          if (dataUser.confirm === 1) {
+            if (MiscHelper.setPassword(req.body.password, dataUser.salt).passwordHash === dataUser.password) {
+              cb(errUser, dataUser)
+            } else {
+              return MiscHelper.errorCustomStatus(res, 'Email or password is invalid!', 400)
+            }
           } else {
-            return MiscHelper.errorCustomStatus(res, 'Email or password is invalid!', 400)
+            return MiscHelper.errorCustomStatus(res, 'Your account is not confirm yet. Please do confirm first!', 409)
           }
         } else {
-          return MiscHelper.errorCustomStatus(res, 'Email or password is invalid!', 400)
+          return MiscHelper.errorCustomStatus(res, 'Email not found!', 404)
         }
       })
     },
     (user, cb) => {
       const data = {
-        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 days' }),
+        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: CONFIG.TOKEN_EXPIRED }),
         updated_at: new Date()
       }
 
@@ -171,7 +176,7 @@ exports.logout = (req, res) => {
   if (!userId) return MiscHelper.errorCustomStatus(res, 'UserID required.', 400)
 
   const data = {
-    token: jsonwebtoken.sign({ iss: userId, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 days' }),
+    token: jsonwebtoken.sign({ iss: userId, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: CONFIG.TOKEN_EXPIRED }),
     updated_at: new Date()
   }
 
@@ -223,7 +228,7 @@ exports.requestToken = (req, res) => {
     },
     (user, cb) => {
       const data = {
-        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: '1 days' }),
+        token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: CONFIG.TOKEN_EXPIRED }),
         updated_at: new Date()
       }
 
@@ -416,7 +421,22 @@ exports.forgotPassword = (req, res) => {
       }
 
       usersModel.insertAuth(req, data, (err, insertUser) => {
-        cb(err, insertUser)
+        user.verify_code = data.verify_code
+        user.auth = insertUser
+        cb(err, user)
+      })
+    },
+    (user, cb) => {
+      const dataEmail = {
+        from: 'No Reply Elarka <noreply@elarka.id>',
+        to: user.email,
+        subject: 'Recovery your password',
+        data: user,
+        tpl: 'forgot-password'
+      }
+
+      mail.sendEmail(dataEmail, (err, result) => {
+        cb(err, user)
       })
     }
   ], (errUser, resultUser) => {
@@ -564,7 +584,8 @@ exports.confirm = (req, res) => {
       if (user) {
         const data = {
           confirm: 1,
-          updated_at: new Date()
+          updated_at: new Date(),
+          token: jsonwebtoken.sign({ iss: user.userid, type: 'mobile' }, CONFIG.CLIENT_SECRET, { expiresIn: CONFIG.TOKEN_EXPIRED })
         }
 
         usersModel.update(req, user.userid, data, (err, updateUser) => {
@@ -577,6 +598,19 @@ exports.confirm = (req, res) => {
       } else {
         return MiscHelper.errorCustomStatus(res, 'Invalid user.', 400)
       }
+    },
+    (user, cb) => {
+      const dataEmail = {
+        from: 'No Reply Elarka <noreply@elarka.id>',
+        to: user.email,
+        subject: 'Your account has been active.',
+        data: user,
+        tpl: 'registration-successfully'
+      }
+
+      mail.sendEmail(dataEmail, (err, result) => {
+        cb(err, user)
+      })
     }
   ], (errUser, resultUser) => {
     if (!errUser) {
@@ -672,6 +706,19 @@ exports.register = (req, res) => {
         user.verify_code = insertUser.verify_code
         cb(err, user)
       })
+    },
+    (user, cb) => {
+      const dataEmail = {
+        from: 'No Reply Elarka <noreply@elarka.id>',
+        to: user.email,
+        subject: 'Thanks for registration account',
+        data: user,
+        tpl: 'verify-account'
+      }
+
+      mail.sendEmail(dataEmail, (err, result) => {
+        cb(err, user)
+      })
     }
   ], (errUser, resultUser) => {
     if (!errUser) {
@@ -717,7 +764,6 @@ exports.resendVerify = (req, res) => {
       })
     },
     (user, cb) => {
-      console.log(user)
       if (user.confirm === 0) {
         const data = {
           status: 1,
@@ -739,6 +785,19 @@ exports.resendVerify = (req, res) => {
       } else {
         return MiscHelper.errorCustomStatus(res, 'You already confirm.', 400)
       }
+    },
+    (user, cb) => {
+      const dataEmail = {
+        from: 'No Reply Elarka <noreply@elarka.id>',
+        to: user.email,
+        subject: 'Resend Verify Code',
+        data: user,
+        tpl: 'verify-account'
+      }
+
+      mail.sendEmail(dataEmail, (err, result) => {
+        cb(err, user)
+      })
     }
   ], (errVerify, resultVerify) => {
     if (!errVerify) {

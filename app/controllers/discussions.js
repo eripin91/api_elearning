@@ -119,6 +119,7 @@ exports.getThreadDetail = (req, res) => {
   }
 
   const key = `get-thread-detail-${req.params.discussionId}-${req.params.userId}-${req.query.sortBy}-${req.query.orderBy}`
+  console.log(key)
   async.waterfall([
     (cb) => {
       redisCache.get(key, detail => {
@@ -267,7 +268,7 @@ exports.insertThreadContent = (req, res) => {
 
       notificationsModel.insert(req, data, (errInsert, resultInsert) => {
         const key = `get-thread-detail-${parentId}-${userId}-total_like-desc`
-        console.log(key)
+        redisCache.del(`get-thread-detail-${parentId}-${userId}-time-desc`)
         redisCache.del(key)
         cb(errInsert, resultInsert)
       })
@@ -326,10 +327,18 @@ exports.like = (req, res) => {
                 if (!errCheck) {
                   const key = `get-thread-${resultCheck[0].courseid}-${userId}`
                   redisCache.del(key)
+                  console.log(`${key} deleted`)
+                  if (resultCheck[0].parent === 0) {
+                    const key = `get-thread-detail-${discussionId}-${userId}-total_like-desc`
+                    redisCache.del(`get-thread-detail-${discussionId}-${userId}-time-desc`)
+                    redisCache.del(key)
+                  } else {
+                    const key = `get-thread-detail-${resultCheck[0].parent}-${userId}-total_like-desc`
+                    redisCache.del(`get-thread-detail-${resultCheck[0].parent}-${userId}-time-desc`)
+                    redisCache.del(key)
+                  }
                 }
               })
-              const key2 = `get-thread-detail-${discussionId}-${userId}-total_like-desc`
-              redisCache.del(key2)
               return MiscHelper.responses(res, resultUpdateLike)
             }
           })
@@ -350,11 +359,18 @@ exports.like = (req, res) => {
           if (!errCheck) {
             const key = `get-thread-${resultCheck[0].courseid}-${userId}`
             redisCache.del(key)
+            if (resultCheck[0].parent === 0) {
+              const key = `get-thread-detail-${discussionId}-${userId}-total_like-desc`
+              redisCache.del(`get-thread-detail-${discussionId}-${userId}-time-desc`)
+              redisCache.del(key)
+            } else {
+              const key = `get-thread-detail-${resultCheck[0].parent}-${userId}-total_like-desc`
+              redisCache.del(`get-thread-detail-${resultCheck[0].parent}-${userId}-time-desc`)
+              redisCache.del(key)
+            }
+            cb(err, result)
           }
         })
-        const key2 = `get-thread-detail-${discussionId}-${userId}-total_like-desc`
-        redisCache.del(key2)
-        cb(err, result)
       })
     }
   ], (errLike, resultLike) => {
