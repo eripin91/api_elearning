@@ -39,6 +39,7 @@ module.exports = {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.log(errConnection)
       connection.query('SELECT duration from courses_material_tab WHERE materialid = ?', [materialId], (err, result) => {
+        console.log(result[0])
         callback(err, result[0])
       })
     })

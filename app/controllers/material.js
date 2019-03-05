@@ -56,8 +56,10 @@ exports.get = (req, res) => {
 exports.update = (req, res) => {
   const userId = req.params.userId
   const materialId = req.params.materialId
+  const keyClass = `get-class-detail-${req.params.classId}-${req.params.userId}`
   async.waterfall([
     (cb) => {
+      redisCache.del(keyClass)
       materialModel.checkUserMaterialAlreadyExist(req, userId, materialId, (errCheck, resultCheck) => {
         if (_.isEmpty(resultCheck) || errCheck) {
           cb(errCheck, 1)
@@ -71,6 +73,7 @@ exports.update = (req, res) => {
             Object.assign(data, { is_downloaded: req.body.is_downloaded })
           }
           courseModel.getMaterials(req, materialId, (err, resultMaterial) => {
+            console.log(1)
             if (err) console.error(err)
             data.watchingduration = resultMaterial.duration
           })
@@ -89,13 +92,12 @@ exports.update = (req, res) => {
       if (trigger === 1) {
         let duration = {}
         courseModel.getMaterials(req, materialId, (err, resultMaterial) => {
-          if (err) console.error(err)
-          console.log(resultMaterial)
-          duration = resultMaterial
+          if (err) console.log(err)
+          duration = Math.floor(resultMaterial.duration / 60)
           const data = {
             userid: userId,
             materialid: materialId,
-            watchingduration: duration.duration,
+            watchingduration: duration,
             is_done_watching: 1,
             is_downloaded: 0,
             status: 1,
@@ -212,6 +214,7 @@ exports.update = (req, res) => {
       })
     },
     (dataDetail, cb) => {
+      console.log(dataDetail)
       if (dataDetail.class_completed === 1) {
         courseModel.checkerClassDone(req, req.params.classId, req.params.userId, (err, result) => {
           if (_.isEmpty(result)) {
