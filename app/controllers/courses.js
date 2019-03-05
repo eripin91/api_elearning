@@ -243,9 +243,13 @@ exports.materialDetail = (req, res) => {
     (cb) => {
       coursesModel.getMaterialDetail(req, req.params.materialDetailId, req.params.userId, (errMaterialDetail, resultMaterialDetail) => {
         resultMaterialDetail.duration = MiscHelper.convertDuration(resultMaterialDetail.duration)
-        resultMaterialDetail.next.map((result) => {
-          result.duration = MiscHelper.convertDuration(result.duration)
-        })
+        if (_.isEmpty(resultMaterialDetail.next)) {
+          resultMaterialDetail.next = []
+        } else {
+          resultMaterialDetail.next.map((result) => {
+            result.duration = MiscHelper.convertDuration(result.duration)
+          })
+        }
         cb(errMaterialDetail, resultMaterialDetail)
       })
     },

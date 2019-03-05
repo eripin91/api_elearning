@@ -101,7 +101,7 @@ module.exports = {
         descriptor = ['Byte', 'KB', 'MB', 'GB']
         rows[0].size = Math.ceil(size.size) + ' ' + descriptor[size.trigger]
         let data = rows[0]
-        connection.query('SELECT cm.materialid, cd.detailid, cm.name, cm.thumbnails, cm.duration FROM courses_material_tab cm JOIN courses_detail_tab cd ON cm.detailid = cd.detailid WHERE cm.detailid = ? AND cm.materialid > ? LIMIT 3 AND cm.status = 1', [data.detailid, data.materialid], (err, result) => {
+        connection.query('SELECT cm.materialid, cd.detailid, cm.name, cm.thumbnails, cm.duration FROM courses_material_tab cm JOIN courses_detail_tab cd ON cm.detailid = cd.detailid WHERE cm.detailid = ? AND cm.materialid > ? AND cm.status = 1 LIMIT 3 ', [data.detailid, data.materialid], (err, result) => {
           data.next = result
           callback(err, data)
         })
