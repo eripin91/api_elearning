@@ -9,10 +9,6 @@ const templatesDir = `${CONFIG.ROOT}/app/email`
 const mail = {
   sendEmail: (data, callback) => {
     if (_.result(data, 'tpl')) {
-      if (_.result(data.data, 'verify_code')) {
-        data.data.verify_code = data.data.verify_code.toString().split('').join('-')
-      }
-
       const email = new EmailTemplates()
       async.waterfall([
         (cb) => {

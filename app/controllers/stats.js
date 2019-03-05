@@ -37,6 +37,9 @@ exports.get = (req, res) => {
     },
     (cb) => {
       statsModel.getUserStatistic(req, req.params.userId, (errStats, resultStats) => {
+        if (_.isEmpty(resultStats)) {
+          return MiscHelper.errorCustomStatus(res, 'Stats not found!', 404)
+        }
         cb(errStats, _.result(resultStats, '[0]'))
       })
     },
@@ -96,7 +99,6 @@ exports.get = (req, res) => {
         })
       }, err => {
         redisCache.setex(key, 600, dataStat)
-        console.log('proccess cached')
         cb(err, dataStat)
       })
     }
@@ -153,7 +155,6 @@ exports.getCertificate = (req, res) => {
     },
     (dataCertificate, cb) => {
       redisCache.setex(key, 600, dataCertificate)
-      console.log(`proccess cached`)
       cb(null, dataCertificate)
     }
   ], (errCertificate, resultCertificate) => {
@@ -221,7 +222,6 @@ exports.getCertificateList = (req, res) => {
     },
     (dataCertificate, cb) => {
       redisCache.setex(key, 600, dataCertificate)
-      console.log('proccess cached')
       cb(null, dataCertificate)
     }
   ], (errList, resultList) => {
