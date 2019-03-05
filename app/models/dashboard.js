@@ -12,7 +12,7 @@ module.exports = {
   getUserClassLimit: (conn, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT ct.classid, ct.name AS class_name, ct.cover, gt.fullname as guru, (SELECT COUNT(*) FROM users_classes_tab WHERE classid = ct.classid AND status = 1) AS member FROM users_classes_tab uc LEFT JOIN classes_tab ct ON uc.classid = ct.classid LEFT JOIN guru_tab gt ON ct.guruid = gt.guruid  WHERE userid = ? AND status = 1 LIMIT 5`, [userId], (err, rows) => {
+      connection.query(`SELECT ct.classid, ct.name AS class_name, ct.cover, gt.fullname as guru, (SELECT COUNT(*) FROM users_classes_tab WHERE classid = ct.classid) AS member FROM users_classes_tab uc LEFT JOIN classes_tab ct ON uc.classid = ct.classid LEFT JOIN guru_tab gt ON ct.guruid = gt.guruid  WHERE userid = ? AND ct.status = 1 LIMIT 5`, [userId], (err, rows) => {
         callback(err, rows)
       })
     })
@@ -36,7 +36,7 @@ module.exports = {
   getClassLimit: (conn, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT ct.classid, ct.name, ct.cover, gt.fullname AS guru FROM classes_tab ct LEFT JOIN guru_tab gt ON ct.guruid = gt.guruid ORDER BY classid WHERE ct.status = 1 ASC LIMIT 5`, (err, rows) => {
+      connection.query(`SELECT ct.classid, ct.name, ct.cover, gt.fullname AS guru FROM classes_tab ct LEFT JOIN guru_tab gt ON ct.guruid = gt.guruid WHERE ct.status = 1 ORDER BY classid ASC LIMIT 5`, (err, rows) => {
         callback(err, rows)
       })
     })
@@ -52,7 +52,7 @@ module.exports = {
   getClassRecomendationLimit: (conn, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
-      connection.query(`SELECT ct.classid, ct.name, gt.fullname AS guru, ct.cover, (SELECT COUNT(*) FROM users_classes_tab WHERE classid = ct.classid WHERE ct.status = 1) as member FROM classes_tab ct LEFT JOIN guru_tab gt ON ct.guruid = gt.guruid WHERE ct.status = 1 ORDER BY ct.priority DESC`, (err, rows) => {
+      connection.query(`SELECT ct.classid, ct.name, gt.fullname AS guru, ct.cover, (SELECT COUNT(*) FROM users_classes_tab WHERE classid = ct.classid) as member FROM classes_tab ct LEFT JOIN guru_tab gt ON ct.guruid = gt.guruid WHERE ct.status = 1 ORDER BY ct.priority DESC`, (err, rows) => {
         callback(err, rows)
       })
     })
