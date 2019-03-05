@@ -54,7 +54,7 @@ exports.get = (req, res) => {
     },
     (data, cb) => {
       dashboardModel.getClass(req, (errClass, resultClass) => {
-        if (resultClass === undefined) {
+        if (_.isEmpty(resultClass)) {
           data.recent_class = 0
         } else {
           data.recent_class = resultClass.length
@@ -64,7 +64,7 @@ exports.get = (req, res) => {
     },
     (data, cb) => {
       dashboardModel.getClassLimit(req, (errClass, resultClass) => {
-        if (resultClass === undefined) {
+        if (_.isEmpty(resultClass)) {
           data.recent_class_list = []
         } else {
           data.recent_class_list = resultClass
@@ -84,7 +84,7 @@ exports.get = (req, res) => {
     },
     (data, cb) => {
       dashboardModel.getClassRecomendationLimit(req, (errClass, resultClass) => {
-        if (resultClass.length === 0) {
+        if (_.isEmpty(resultClass)) {
           data.recomendation_class_list = []
         } else {
           data.recomendation_class_list = resultClass
