@@ -13,6 +13,7 @@ API for E-Learning
 ### Prerequisites
 - Node.js - Download and Install [Node.js](https://nodejs.org/en/) with [NVM](https://github.com/creationix/nvm) (Node Version Manager) - Simple bash script to manage multiple active node.js versions.
 - MySQL - Download and Install [MySQL](https://www.mysql.com/downloads/) - Make sure it's running on the default port.
+- Redis - Download and Install [Redis](https://redis.io/download/) - Make sure it's running on the default port.
 
 ```
   $ git@github.com/sigmatech-eripin/e-learning.git
@@ -50,4 +51,4 @@ $ npm run deploy-production
 ### License
 ----
 
-[Beerware](https://en.wikipedia.org/wiki/Beerware "Beerware") © [Gratcy Palma P Hutapea]
+[Beerware](https://en.wikipedia.org/wiki/Beerware "Beerware") © [Sigmatech]
