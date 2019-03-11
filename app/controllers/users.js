@@ -268,7 +268,7 @@ exports.profile = (req, res) => {
   req.checkBody('newemail', 'newemail is required').notEmpty()
   req.checkBody('phone', 'phone is required').notEmpty()
 
-  const userId = req.headers['e-learning-user']
+  const userId = req.headers['x-telkom-user']
   const email = req.body.email
   const newemail = req.body.newemail
 
