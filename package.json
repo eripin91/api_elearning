@@ -6,21 +6,21 @@
   "scripts": {
     "test": "npm run standard && NODE_PATH=./config:./app/controllers NODE_ENV=testing ./node_modules/.bin/mocha --exit --reporter spec --timeout 10000 test/*.js",
     "start": "nodemon app.js",
-    "start-production": "pm2 start app.js -i 0 --name 'courses' --node-args='--max-old-space-size=2048' --max-memory-restart 1500M --log-date-format 'YYYY-MM-DD HH:mm Z' --no-pmx",
+    "start-production": "pm2 start app.js -i 0 --name 'e-learning' --node-args='--max-old-space-size=2048' --max-memory-restart 1500M --log-date-format 'YYYY-MM-DD HH:mm Z' --no-pmx",
     "standard": "./node_modules/.bin/standard",
     "deploy-production": "npm test && pm2 deploy ecosystem.json production",
     "deploy-staging": "npm test && pm2 deploy ecosystem.json staging"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/gratcy/courses.git"
+    "url": "git+ssh://git@github.com/sigmatech-eripin/e-learning.git"
   },
   "author": "Dev Team",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/gratcy/courses/issues"
+    "url": "https://github.com/sigmatech-eripin/e-learning/issues"
   },
-  "homepage": "https://github.com/gratcy/courses#readme",
+  "homepage": "https://github.com/sigmatech-eripin/e-learning#readme",
   "pre-commit": [
     "standard",
     "test"
