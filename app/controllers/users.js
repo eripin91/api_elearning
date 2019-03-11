@@ -807,3 +807,25 @@ exports.resendVerify = (req, res) => {
     }
   })
 }
+
+/*
+ * POST : '/users/upload'
+ *
+ * @desc Upload avatar
+ *
+ * @param  {object} req - Parameters for request
+ *
+ * @return {object} Request object
+ */
+
+exports.upload = (req, res, next) => {
+  if (!_.result(req.file, 'key')) {
+    return MiscHelper.errorCustomStatus(res, 'Invalid file upload.', 400)
+  } else {
+    const dataFile = {
+      file: req.file.key,
+      url: CONFIG.AWS.CUSTOM_END_POINS + '/' + req.file.key
+    }
+    return MiscHelper.responses(res, dataFile)
+  }
+}
