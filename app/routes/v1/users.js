@@ -1,4 +1,4 @@
-/* global UsersControllers AuthHelper */
+/* global UsersControllers UploadControllers AuthHelper */
 
 'use strict'
 
@@ -18,5 +18,6 @@ Route
   .post('/change-password', UsersControllers.changePassword)
   .post('/forgot-password', UsersControllers.forgotPassword)
   .post('/set-password-forgot', UsersControllers.setPasswordForgot)
+  .post('/upload', UploadControllers.upload.single('photo'), UsersControllers.upload)
 
 module.exports = Route
