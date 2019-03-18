@@ -51,6 +51,52 @@ exports.get = (req, res) => {
 }
 
 /*
+ * GET : '/users/get/:userId'
+ *
+ * @desc Get user by userId
+ *
+ * @param  {object} req - Parameters for request
+ *
+ * @return {object} Request object
+ */
+
+exports.getDetail = (req, res) => {
+  req.checkParams('userId', 'userId is required').notEmpty()
+
+  if (req.validationErrors()) {
+    return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
+  }
+
+  const key = `get-user:${req.params.userId}`
+
+  async.waterfall([
+    (cb) => {
+      redisCache.get(key, users => {
+        if (users) {
+          return MiscHelper.responses(res, users)
+        } else {
+          cb(null)
+        }
+      })
+    },
+    (cb) => {
+      usersModel.getUserById(req, req.params.userId, (errUser, resultUser) => {
+        cb(errUser, resultUser)
+      })
+    },
+    (dataUser, cb) => {
+      redisCache.setex(key, 0, dataUser)
+      cb(null, dataUser)
+    }
+  ], (errUser, resultUser) => {
+    if (!errUser) {
+      return MiscHelper.responses(res, resultUser)
+    } else {
+      return MiscHelper.errorCustomStatus(res, errUser, 400)
+    }
+  })
+}
+/*
  * GET : '/users/:userId/classes'
  *
  * @desc Get user list
@@ -289,6 +335,7 @@ exports.profile = (req, res) => {
     },
     (cb) => {
       const data = {
+        profile_picture: req.body.profile_picture,
         email: req.body.email,
         fullname: req.body.fullname,
         phone: req.body.phone,
@@ -296,6 +343,10 @@ exports.profile = (req, res) => {
       }
 
       usersModel.update(req, userId, data, (err, updateUser) => {
+        const key = `get-user:${userId}`
+
+        redisCache.del(key)
+
         cb(err, updateUser)
       })
     }
