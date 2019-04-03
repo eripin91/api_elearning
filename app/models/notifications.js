@@ -31,11 +31,25 @@ module.exports = {
       })
     })
   },
-  getNotification: (conn, userId, callback) => {
+  getNotification: (conn, userId, limit, offset, callback) => {
+    conn.getConnection((errConnection, connection) => {
+      if (errConnection) console.error(errConnection)
+      let paginagionRole = ``
+
+      if (limit > 0) {
+        paginagionRole = `LIMIT ${offset},${limit}`
+      }
+
+      connection.query(`SELECT * FROM notification_tab WHERE userid = ? ORDER BY created_at DESC ${paginagionRole}`, userId, (err, rows) => {
+        callback(err, rows)
+      })
+    })
+  },
+  countNotification: (conn, userId, callback) => {
     conn.getConnection((errConnection, connection) => {
       if (errConnection) console.error(errConnection)
 
-      connection.query(`SELECT * FROM notification_tab WHERE userid = ? ORDER BY created_at DESC`, userId, (err, rows) => {
+      connection.query(`SELECT COUNT(*) as total FROM notification_tab WHERE userid = ?`, userId, (err, rows) => {
         callback(err, rows)
       })
     })
