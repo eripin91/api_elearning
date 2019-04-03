@@ -9,11 +9,16 @@ const redisCache = require('../libs/RedisCache')
 exports.get = (req, res) => {
   req.checkParams('userId', 'userId is required').notEmpty().isInt()
 
+  const limit = parseInt(_.result(req.query, 'limit', 0))
+  const page = parseInt(_.result(req.query, 'page', 0))
+  const offset = page === 1 ? 0 : (limit * (page || 1))
+  const userId = req.params.userId
+
   if (req.validationErrors()) {
     return MiscHelper.errorCustomStatus(res, req.validationErrors(true))
   }
 
-  const key = `get-notification:${req.params.userId}:${new Date().getTime()}`
+  const key = `get-notification:${userId}:${limit}:${page}:${offset}` + new Date().getTime()
 
   async.waterfall([
     (cb) => {
@@ -26,14 +31,22 @@ exports.get = (req, res) => {
       })
     },
     (cb) => {
-      notificationsModel.getNotification(req, req.params.userId, (errNotif, resultNotif) => {
+      notificationsModel.getNotification(req, userId, limit, offset, (errNotif, resultNotif) => {
         cb(errNotif, resultNotif)
       })
     },
-    (dataNotif, cb) => {
-      redisCache.setex(key, 600, dataNotif)
-      console.log('proccess cached')
-      cb(null, dataNotif)
+    (resultNotif, cb) => {
+      if (resultNotif && limit > 0) {
+        notificationsModel.countNotification(req, userId, (errNotif, countNotif) => {
+          const dataNotif = {
+            notifications: resultNotif,
+            total: _.result(countNotif, '[0].total', 0)
+          }
+          cb(errNotif, dataNotif)
+        })
+      } else {
+        cb(null, resultNotif)
+      }
     }
   ], (errNotif, resultNotif) => {
     if (!errNotif) {
